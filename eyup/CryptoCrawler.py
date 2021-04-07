@@ -23,6 +23,7 @@ import numpy_financial as nf
 import locale
 import json
 import timeit
+import pandas
 
 def readInitCMB():
     finalListCoins = []
@@ -142,21 +143,97 @@ def readCurrencyCMB(coin,out=True,att=2):
             erg[key] = "N/A"
     return(erg)
 
+def readHistPriceCMB(coin,out=True,wait=.5):
+    erg = {}
+    link = f"https://coinmarketcap.com/currencies/{coin}/historical-data/"
+    if out: print (f"Reading price data for {coin} ...")    
+    erg["coin"] = coin.capitalize()    
+    options = Options()
+    options.add_argument("start-maximized")
+    options.add_argument('window-size=1920x1080')
+    options.add_argument('--headless')
+    options.add_experimental_option ('excludeSwitches', ['enable-logging'])
+    path = os.path.abspath (os.path.dirname (sys.argv[0]))
+
+    if platform == "win32": cd = '/chromedriver.exe'
+    elif platform == "linux": cd = '/chromedriver_linux'
+    elif platform == "darwin": cd = '/chromedriver'
+    driver = webdriver.Chrome (path + cd, options=options)
+    driver.get (link)
+    time.sleep (wait)
+    element = driver.find_element_by_xpath ('//*[@id="__next"]/div/div[2]/div/div[3]/div/div/div[1]/span/button')
+    time.sleep (wait)
+    webdriver.ActionChains(driver).move_to_element(element ).click(element ).perform()
+    time.sleep (wait)
+
+    driver.find_element_by_xpath ('//*[@id="tippy-24"]/div/div[1]/div/div/div[1]/div[2]/ul/li[5]').click()
+
+    time.sleep (wait)
+    driver.find_element_by_xpath ('//*[@id="tippy-24"]/div/div[1]/div/div/div[2]/span/button').click()
+    time.sleep (wait)
+
+    tmpListElements = []
+    soup = BeautifulSoup (driver.page_source, 'html.parser')
+    tmpTR = soup.find_all("tr")
+
+    for idx, elem in enumerate(tmpTR):
+        for idx2, elem2 in enumerate(elem.find_all("td")):
+            tmpListElements.append(elem2.text.strip())
+
+    for i,e in enumerate(tmpListElements):
+        if i % 7 == 0:
+            tmpDate = datetime.strptime(e, "%b %d, %Y")
+            tmpDate = datetime.strftime(tmpDate, "%Y-%m-%d")
+            erg[tmpDate] = tmpListElements[i+1:i+7]
+
+    for key, val in erg.items ():
+        if key == "coin":
+            continue
+        tmpVal = val
+        for elemIDX, elem in enumerate(tmpVal):
+            tmpVal[elemIDX] = sc.clean_value(elem)
+        erg[key] = tmpVal
+
+    return (erg)
+
+def readHistPriceCMBapi(coin,out=True,start="2020-01-01",end="2020-12-31"):
+    erg = {}
+    start = datetime.strptime(start, "%Y-%m-%d")
+    end = datetime.strptime(end, "%Y-%m-%d")
+
+    startISO = int(datetime.fromisoformat(str(start)).timestamp())
+    endISO = int(datetime.fromisoformat(str(end)).timestamp())
+
+    link = f"https://web-api.coinmarketcap.com/v1/cryptocurrency/ohlcv/historical?slug={coin}&convert=USD&time_start={startISO}&time_end={endISO}"
+    if out: print (f"Reading price data for {coin} ...")    
+    response = requests.get(link).json()
+    df = pandas.DataFrame([q["quote"]["USD"] for q in response["data"]["quotes"]])
+    df['timestamp'] = pandas.to_datetime(df['timestamp']).apply(lambda x: x.date())
+    erg = df.set_index('timestamp').T.to_dict('list')
+
+    return (erg)
+
 if __name__ == '__main__':
-    SUMMARY = True
+    SUMMARY = False
+    HISTPRICE = False
+    HISTPRICE_API = True
     COIN_INIT = False
 
     coin = "bitcoin"
     # coin = "venus-bnb"
     # coin = "istanbul-basaksehir-fan-token"
+    # coin = "bitcoin-cash"
+    coin = "ethereum"
 
     erg = {}
     ergList = []
     if SUMMARY: erg = readCurrencyCMB(coin)
+    if HISTPRICE: erg = readHistPriceCMB(coin)
+    if HISTPRICE_API: erg = readHistPriceCMBapi(coin)
     if COIN_INIT: ergList = readInitCMB()
 
-    if SUMMARY:
-        for key, val in erg.items (): print (f"{key} => {val} {type(val)}")
     if COIN_INIT:
         for i,e in enumerate(ergList):
             print(f"{i+1}: {e}")
+    else:
+        for key, val in erg.items (): print (f"{key} => {val} {type(val)}")  
