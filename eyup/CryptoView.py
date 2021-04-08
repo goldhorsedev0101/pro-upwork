@@ -78,6 +78,10 @@ if __name__ == '__main__':
 
         # read data
         summary = cc.readCurrencyCMB(coin)
+        if summary == {}:            
+            idxRow += 1
+            continue
+
         time.sleep (WAIT)
 
         # write data to excel
@@ -107,6 +111,7 @@ if __name__ == '__main__':
 
         if HISTPRICE:
             if coin in listPrices:
+                print(f"Price update skipped - coin {coin} allready in worksheet HistPrices...")
                 continue
             endDT = datetime.now().strftime("%Y-%m-%d")
             startDT = (datetime.now() - timedelta(days=365)).strftime("%Y-%m-%d")

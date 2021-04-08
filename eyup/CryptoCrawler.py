@@ -69,7 +69,7 @@ def readCurrencyCMB(coin,out=True,att=2):
     erg = {}
     link = f"https://coinmarketcap.com/currencies/{coin}/"
     if out: print (f"Reading summary web data for {coin} ...")    
-    erg["coin"] = coin.capitalize()
+    
 
     attempt = 1
     while attempt < att:
@@ -87,6 +87,11 @@ def readCurrencyCMB(coin,out=True,att=2):
     if tmpTR == None: return ({})
 
     tmpSymbol = soup.find("small", class_=re.compile("nameSymbol_"))    
+    if tmpSymbol in [None]:
+        print(f"Data for coin {coin} not found - skipped...")
+        return (erg)
+    
+    erg["coin"] = coin.capitalize()    
     erg["symbol"] = tmpSymbol.text.strip()
 
     tmpList = []
@@ -214,16 +219,17 @@ def readHistPriceCMBapi(coin,out=True,start="2020-01-01",end="2020-12-31"):
     return (erg)
 
 if __name__ == '__main__':
-    SUMMARY = False
+    SUMMARY = True
     HISTPRICE = False
-    HISTPRICE_API = True
+    HISTPRICE_API = False
     COIN_INIT = False
 
     coin = "bitcoin"
     # coin = "venus-bnb"
     # coin = "istanbul-basaksehir-fan-token"
     # coin = "bitcoin-cash"
-    coin = "ethereum"
+    # coin = "ethereum"
+    coin = "funfair"
 
     erg = {}
     ergList = []
