@@ -45,7 +45,7 @@ def readQuandlPrices(ticker):
     return(erg)
 
 def readBenzingaNews(ticker, date_from=None, date_to=None, maxCount=100):
-    if date_from == None and date_to == None
+    if date_from == None and date_to == None:
         endday = datetime.today()
         startDay = tday - timedelta(days=7) 
     elif date_from != None and date_to == None:
@@ -72,6 +72,6 @@ for stock in TEST_STOCKS:
     quandlActions = readQuandlActions(stock)
     quandlPrices = readQuandlPrices(stock)
     
-    print(quandlPrices)
-    print(quandlPrices.columns)
+    print(quandlEvents)
+    print(quandlEvents.columns)
        
