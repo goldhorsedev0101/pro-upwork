@@ -17,6 +17,16 @@ BENZINGA_API = os.environ.get("BENZINGA_API")
 TEST_STOCKS = ["AAPL","FB","AMZN","CAT","FB"]
 
 def readQuandlMain(ticker, dateFrom=None, timeDim=None):
+    """
+    Read main data from Quandl
+    Return: dataframe with data
+    Args:
+        ticker (str): ticker-symbol
+        dateFrom (str in form "yyyy-mm-dd", optional): Set default from-Date. Defaults to None.
+        timeDim (str, optional): Set used time-Dimension. Docu see here: 
+        https://www.quandl.com/databases/SF1/documentation?anchor=dimensions 
+        Defaults to None.
+    """
     if dateFrom == None and timeDim == None:
         erg = quandl.get_table('SHARADAR/SF1', ticker=ticker, dimension="MRY")
     elif dateFrom != None and timeDim == None:
@@ -30,6 +40,12 @@ def readQuandlMain(ticker, dateFrom=None, timeDim=None):
     return(erg)
 
 def readQuandlEvents(ticker):
+    """
+    Read Events Data from Quandl
+    Return: dataframe with data
+    Args:
+        ticker (str): ticker-symbol
+    """
     erg = quandl.get_table('SHARADAR/EVENTS', ticker=ticker)
     return(erg)
 
@@ -38,18 +54,56 @@ def readQuandlMetadata(ticker):
     return(erg)
 
 def readQuandlDaily(ticker):
+    """
+    Read Daily Data from Quandl
+    Return: dataframe with data
+    Args:
+        ticker (str): ticker-symbol
+    """
     erg = quandl.get_table('SHARADAR/DAILY', ticker='AAPL')
     return(erg)
 
 def readQuandlActions(ticker):
+    """
+    Read Actions Data from Quandl
+    Return: dataframe with data
+    Args:
+        ticker (str): ticker-symbol
+    """
     erg = quandl.get_table('SHARADAR/ACTIONS', ticker='AAPL')
     return(erg)
 
 def readQuandlPrices(ticker):
+    """
+    Read Prices Data from Quandl
+    Return: dataframe with data
+    Args:
+        ticker (str): ticker-symbol
+    """
     erg = quandl.get('WIKI/AAPL')
     return(erg)
 
 def readBenzingaNews(ticker, date_from=None, date_to=None, maxCount=100, limit4PM=True):
+    """
+    Read Benzinga News-Data
+    (test-api-key only limited to 100 news-messages it seems)
+    Return: list with data
+    Args:
+        ticker (str): ticker-symbol
+        date_from (str in form "yyyy-mm-dd", optional): Defaults to None.
+            Start date from where the news should be read
+        date_to (str in form "yyyy-mm-dd", optional): Defaults to None.
+            End date to where the news should be read
+            if both dates are none => news from actual day back for 7 days
+            if date_from is none and date_to is not none => 7 days back from enddate
+            if date_from is not none and date_to is none => 7 days from startdate forward
+            if both dates are not none => take this timespan for reading news
+        maxCount (int, optional): Defaults to 100.
+            amount of news which should be read
+            (test-api-key only limited to 100 news-messages it seems)
+        limit4PM (bool, optional): [description]. Defaults to True.
+    """
+
     if date_from == None and date_to == None:
         endDay = datetime.today()
         startDay = endDay - timedelta(days=7)
@@ -93,10 +147,30 @@ def readBenzingaNews(ticker, date_from=None, date_to=None, maxCount=100, limit4P
         return(stories)
 
 def readYFSummary(ticker):
+    """
+    Read YF summary data
+    Return: yfinance.ticker data
+    Arguments:
+        ticker (str): ticker-symbol
+    """
     dataYF = yf.Ticker(ticker)
     return(dataYF)
 
 def readYFPrices(ticker,startDate=None,endDate=None):
+    """
+    Read YF price data
+    Return: dataframe with data
+    Args:
+        ticker (str): ticker-symbol
+        startDate (str in form "yyyy-mm-dd", optional): Defaults to None.
+            Start date from where the prices should be read
+        endDate (str in form "yyyy-mm-dd", optional): Defaults to None.
+            End date to where the prices should be read
+            if both dates are none => all prices are read
+            if date_from is none and date_to is not none => read prices with starting from "1980-01-01"
+            if date_from is not none and date_to is none => read prices from start-date to actual date
+            if both dates are not none => take this timespan for reading prices
+    """
     if startDate != None and endDate != None:
         startDT = datetime.strptime(startDate, "%Y-%m-%d")
         endDT = datetime.strptime(endDate, "%Y-%m-%d")
@@ -160,17 +234,17 @@ for stock in TEST_STOCKS:
 
 
     dataYF = readYFSummary(stock)
-    # # Summary Infos
-    # tmpKey = []
-    # tmpVal = []
-    # listFinal = []
-    # for key, val in dataYF.info.items ():
-    #     tmpKey.append(key)
-    #     tmpVal.append(val)
-    #     if val not in [False,None]:
-    #         print (f"{key} => {val} {type(val)}")
-    # listFinal.append(tmpKey)
-    # listFinal.append(tmpVal)
+    # Summary Infos
+    tmpKey = []
+    tmpVal = []
+    listFinal = []
+    for key, val in dataYF.info.items ():
+        tmpKey.append(key)
+        tmpVal.append(val)
+        if val not in [False,None]:
+            print (f"{key} => {val} {type(val)}")
+    listFinal.append(tmpKey)
+    listFinal.append(tmpVal)
     
     YFfinancials = dataYF.financials
     YFdividends = dataYF.dividends
@@ -190,15 +264,15 @@ for stock in TEST_STOCKS:
     # print(pricesYF)
     
     writer = pd.ExcelWriter('basisReadData.xlsx', engine='xlsxwriter')
-    # quandlMain.to_excel(writer, sheet_name="quandlMain"),	
-    # quandlMain2.to_excel(writer, sheet_name="quandlMain_From2018_MRT")
-    # quandlEvents.to_excel(writer, sheet_name="quandlEvents")
-    # quandlMetadata.to_excel(writer, sheet_name="quandlMetadata")
-    # quandlDaily.to_excel(writer, sheet_name="quandlDaily")
-    # quandlActions.to_excel(writer, sheet_name="quandlActions")
-    # quandlPrices.to_excel(writer, sheet_name="quandlPrices")
-    # pd.DataFrame (outputFinal).to_excel (writer, sheet_name="benzingNews", header=False, index=False) 
-    # pd.DataFrame (listFinal).to_excel (writer, sheet_name="yFinance Info", header=False, index=False) 
+    quandlMain.to_excel(writer, sheet_name="quandlMain"),	
+    quandlMain2.to_excel(writer, sheet_name="quandlMain_From2018_MRT")
+    quandlEvents.to_excel(writer, sheet_name="quandlEvents")
+    quandlMetadata.to_excel(writer, sheet_name="quandlMetadata")
+    quandlDaily.to_excel(writer, sheet_name="quandlDaily")
+    quandlActions.to_excel(writer, sheet_name="quandlActions")
+    quandlPrices.to_excel(writer, sheet_name="quandlPrices")
+    pd.DataFrame (outputFinal).to_excel (writer, sheet_name="benzingNews", header=False, index=False) 
+    pd.DataFrame (listFinal).to_excel (writer, sheet_name="yFinance Info", header=False, index=False) 
     YFfinancials.to_excel(writer, sheet_name="YFfinancials")
     YFdividends.to_excel(writer, sheet_name="YFdividends")
     YFsplits.to_excel(writer, sheet_name="YFsplits")
@@ -211,11 +285,6 @@ for stock in TEST_STOCKS:
     YFrecommend.to_excel(writer, sheet_name="YFrecommend")
     YFcalendar.to_excel(writer, sheet_name="YFcalendar")
     YFprices.to_excel(writer, sheet_name="YFprices")
-
-
-
-
-
     writer.save()
   
 
