@@ -96,6 +96,24 @@ def readYFSummary(ticker):
     dataYF = yf.Ticker(ticker)
     return(dataYF)
 
+def readYFPrices(ticker,startDate=None,endDate=None):
+    if startDate != None and endDate != None:
+        startDT = datetime.strptime(startDate, "%Y-%m-%d")
+        endDT = datetime.strptime(endDate, "%Y-%m-%d")
+        erg = yf.download(ticker,start=startDT,end=endDT)
+    elif startDate != None and endDate == None:
+        startDT = datetime.strptime(startDate, "%Y-%m-%d")
+        endDT = datetime.today()
+        erg = yf.download(ticker,start=startDT,end=endDT)
+    elif startDate == None and endDate != None:
+        startDT = datetime.strptime("1980-01-01", "%Y-%m-%d")
+        endDT = datetime.strptime(endDate, "%Y-%m-%d")      
+        erg = yf.download(ticker,start=startDT,end=endDT) 
+    elif startDate == None and endDate == None:
+        erg = yf.download(ticker)
+    return(erg)
+
+
 for stock in TEST_STOCKS:
     # quandlMain = readQuandlMain(stock)
     # quandlMain2 = readQuandlMain(stock, dateFrom="2018-01-01", timeDim ="MRT")
@@ -106,32 +124,33 @@ for stock in TEST_STOCKS:
     # quandlActions = readQuandlActions(stock)
     # quandlPrices = readQuandlPrices(stock)
   
-    benzingNews1 = readBenzingaNews(stock)
+    # benzingNews1 = readBenzingaNews(stock)
     # benzingNews2 = readBenzingaNews(stock, date_from="2021-04-21", date_to="2021-04-21")
     # benzingNews3 = readBenzingaNews(stock, date_from="2021-04-21")
     # benzingNews4 = readBenzingaNews(stock, date_to="2021-04-21")
     # benzingNews5 = readBenzingaNews(stock,limit4PM=False)   
-    outputFinal = []
-    for idx, elem in enumerate(benzingNews1):
-        outputHeader = []
-        outputRow = []
-        for key, val in elem.items ():
-            if idx == 0:
-                outputHeader.append(key)
-            if key in ["image","channels","stocks","tags"]:
-                if val != []:
-                    outputCell = []              
-                    for inpCell in val:
-                        for k,v in inpCell.items():
-                            outputCell.append(v)
-                    outputRow.append(outputCell)
-                else:
-                    outputRow.append("-")
-            else:
-                outputRow.append(val)
-        if idx == 0:
-            outputFinal.append(outputHeader)     
-        outputFinal.append(outputRow)    
+    # outputFinal = []
+    # for idx, elem in enumerate(benzingNews1):
+    #     outputHeader = []
+    #     outputRow = []
+    #     for key, val in elem.items ():
+    #         if idx == 0:
+    #             outputHeader.append(key)
+    #         if key in ["image","channels","stocks","tags"]:
+    #             if val != []:
+    #                 outputCell = []              
+    #                 for inpCell in val:
+    #                     for k,v in inpCell.items():
+    #                         outputCell.append(v)
+    #                 outputRow.append(outputCell)
+    #             else:
+    #                 outputRow.append("-")
+    #         else:
+    #             outputRow.append(val)
+    #     if idx == 0:
+    #         outputFinal.append(outputHeader)     
+    #     outputFinal.append(outputRow)    
+    
     # for idx, elem in enumerate(benzingNews1):
     #     print(f"\n\nStory {idx}:")
     #     for key, val in elem.items ():
@@ -139,6 +158,37 @@ for stock in TEST_STOCKS:
     #         print(f"{key} => {val}")    
     #     exit()
 
+
+    dataYF = readYFSummary(stock)
+    # # Summary Infos
+    # tmpKey = []
+    # tmpVal = []
+    # listFinal = []
+    # for key, val in dataYF.info.items ():
+    #     tmpKey.append(key)
+    #     tmpVal.append(val)
+    #     if val not in [False,None]:
+    #         print (f"{key} => {val} {type(val)}")
+    # listFinal.append(tmpKey)
+    # listFinal.append(tmpVal)
+    
+    YFfinancials = dataYF.financials
+    YFdividends = dataYF.dividends
+    YFsplits = dataYF.splits
+    YFmajorholders = dataYF.major_holders
+    YFinstholders = dataYF.institutional_holders
+    YFbalsheet = dataYF.balance_sheet
+    YFcashflow = dataYF.cashflow
+    YFearnings = dataYF.earnings
+    YFsustain = dataYF.sustainability
+    YFrecommend = dataYF.recommendations
+    YFcalendar = dataYF.calendar  
+    YFprices = readYFPrices(stock)
+    # pricesYF = readYFPrices(stock,startDate="2020-01-01",endDate="2020-12-31")
+    # pricesYF = readYFPrices(stock,startDate="2020-01-01")
+    # pricesYF = readYFPrices(stock,endDate="1999-12-31")
+    # print(pricesYF)
+    
     writer = pd.ExcelWriter('basisReadData.xlsx', engine='xlsxwriter')
     # quandlMain.to_excel(writer, sheet_name="quandlMain"),	
     # quandlMain2.to_excel(writer, sheet_name="quandlMain_From2018_MRT")
@@ -147,31 +197,28 @@ for stock in TEST_STOCKS:
     # quandlDaily.to_excel(writer, sheet_name="quandlDaily")
     # quandlActions.to_excel(writer, sheet_name="quandlActions")
     # quandlPrices.to_excel(writer, sheet_name="quandlPrices")
-    pd.DataFrame (outputFinal).to_excel (writer, sheet_name="benzingNews", header=False, index=False) 
+    # pd.DataFrame (outputFinal).to_excel (writer, sheet_name="benzingNews", header=False, index=False) 
+    # pd.DataFrame (listFinal).to_excel (writer, sheet_name="yFinance Info", header=False, index=False) 
+    YFfinancials.to_excel(writer, sheet_name="YFfinancials")
+    YFdividends.to_excel(writer, sheet_name="YFdividends")
+    YFsplits.to_excel(writer, sheet_name="YFsplits")
+    YFmajorholders.to_excel(writer, sheet_name="YFmajorholders")
+    YFinstholders.to_excel(writer, sheet_name="YFinstholders")
+    YFbalsheet.to_excel(writer, sheet_name="YFbalsheet")
+    YFcashflow.to_excel(writer, sheet_name="YFcashflow")
+    YFearnings.to_excel(writer, sheet_name="YFearnings")
+    YFsustain.to_excel(writer, sheet_name="YFsustain")
+    YFrecommend.to_excel(writer, sheet_name="YFrecommend")
+    YFcalendar.to_excel(writer, sheet_name="YFcalendar")
+    YFprices.to_excel(writer, sheet_name="YFprices")
+
+
+
+
+
     writer.save()
-    exit()
+  
 
-
-
-
-
-    # dataYF = readYFSummary(stock)
-    # # Summary Infos
-    # for key, val in dataYF.info.items ():
-    #     if val not in [False,None]:
-    #         print (f"{key} => {val} {type(val)}")
-    # print(dataYF.financials)
-    # print(dataYF.dividends)
-    # print(dataYF.splits)
-    # print(dataYF.major_holders)
-    # print(dataYF.institutional_holders)
-    # print(dataYF.balance_sheet)
-    # print(dataYF.cashflow)
-    # print(dataYF.earnings)
-    # print(dataYF.sustainability)
-    # print(dataYF.recommendations)
-    # print(dataYF.calendar)  
-    
     exit()
 
 
