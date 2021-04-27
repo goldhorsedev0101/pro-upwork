@@ -1,5 +1,5 @@
-import StockCrawler as sc
-import RapidTechTools as rtt
+# import StockCrawler as sc
+# import RapidTechTools as rtt
 import requests
 from bs4 import BeautifulSoup
 from selenium import webdriver
@@ -201,7 +201,8 @@ def readHistPriceCMC(coin,out=True,wait=.5):
 
     return (erg)
 
-def readHistPriceCMCapi(coinID,out=True,start="2017-01-01",end="2018-04-28"):
+def readHistPriceCMCapi(coinID,out=True,start="2017-01-01",end="2021-04-27",output="df"):
+    # output="df" for dataframe, output="dict" for dictionary
     erg = {}
     start = datetime.strptime(start, "%Y-%m-%d")
     end = datetime.strptime(end, "%Y-%m-%d")
@@ -209,31 +210,56 @@ def readHistPriceCMCapi(coinID,out=True,start="2017-01-01",end="2018-04-28"):
     startISO = int(datetime.fromisoformat(str(start)).timestamp())
     endISO = int(datetime.fromisoformat(str(end)).timestamp())
 
-    link = f"https://web-api.coinmarketcap.com/v1/cryptocurrency/ohlcv/historical?id={coinID}&convert=USD&time_start={startISO}&time_end={endISO}"
-    if out: print (f"Reading price data for {coin} ...")    
-    response = requests.get(link).json()
-    df = pandas.DataFrame([q["quote"]["USD"] for q in response["data"]["quotes"]])
-    df['timestamp'] = pandas.to_datetime(df['timestamp']).apply(lambda x: x.date())
-    erg = df.set_index('timestamp').T.to_dict('list')
+    # coinID = "1,1027,1839,52,825,2010,74,6636,7083,2"
+    # coinID = "2010,74,6636,7083,2"
+    # coinID = "1,1027,1839,52,825"
+    
+    link = f"https://web-api.coinmarketcap.com/v1/cryptocurrency/ohlcv/historical?id={coinID}&convert=USD&time_start={startISO}&time_end={endISO}"      
+    response = requests.get(link).json()   
+    erg = response["data"]
+    listFinal = []
+    # loop trough individual coin
+    for key, val in response["data"].items():
+        if out: print (f"Reading price data for {val['symbol']} ...")          
+        id = val["id"]
+        name = val["name"]
+        symbol = val["symbol"]
+        # loop trough individual price per day
+        for elem in val["quotes"]: 
+            ergDict = {}
+            ergDict["id"] = val["id"]
+            ergDict["name"] = val["name"]
+            ergDict["symbol"] = val["symbol"]
+            tmpDate = elem["time_open"][:10]
+            ergDict["datePrice"] = datetime.strptime(tmpDate, "%Y-%m-%d")
+            ergDictQuote = elem["quote"]["USD"]
+            ergDict = {**ergDict, **ergDictQuote}
 
-    return (erg)
+            listFinal.append(ergDict)
+  
+    df = pandas.DataFrame(listFinal)        
+    # df = pandas.DataFrame([q["quote"]["USD"] for q in response["data"]["quotes"]])
+    # df['timestamp'] = pandas.to_datetime(df['timestamp']).apply(lambda x: x.date())
+    # df = df.set_index("timestamp")    
+    if output == "df":
+        return(df)
+    else:   
+        erg = df.T.to_dict('list')
+        return (erg)
 
 def readCoinsIDs():
     link = f"https://web-api.coinmarketcap.com/v1/cryptocurrency/map?sort=cmc_rank"
     response = requests.get(link).json()
     dataErg = response["data"]
-
-    print(type(dataErg))
-    exit()
-
     return dataErg
 
 
 if __name__ == '__main__':
     SUMMARY = False
     HISTPRICE = False
-    HISTPRICE_API = False
-    READCOINS_API = True
+    HISTPRICE_API_DICT = False
+    HISTPRICE_API_DF = True
+    READCOINS_API = False
     COIN_INIT = False
 
     coin = "bitcoin"
@@ -247,7 +273,8 @@ if __name__ == '__main__':
     ergList = []
     if SUMMARY: erg = readCurrencyCMB(coin)
     if HISTPRICE: erg = readHistPriceCMB(coin)
-    if HISTPRICE_API: erg = readHistPriceCMCapi(1)
+    if HISTPRICE_API_DICT: erg = readHistPriceCMCapi(1,output="dict")
+    if HISTPRICE_API_DF: erg = readHistPriceCMCapi(1)
     if COIN_INIT: ergList = readInitCMB()
     if READCOINS_API: erg = readCoinsIDs()
 
@@ -257,5 +284,7 @@ if __name__ == '__main__':
     elif READCOINS_API:
         for i in erg:
             print(i)
+    elif HISTPRICE_API_DF:
+        print(erg)
     else:
         for key, val in erg.items (): print (f"{key} => {val} {type(val)}")  
