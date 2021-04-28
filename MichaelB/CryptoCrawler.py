@@ -201,7 +201,7 @@ def readHistPriceCMC(coin,out=True,wait=.5):
 
     return (erg)
 
-def readHistPriceCMCapi(coinID,out=True,start="2017-01-01",end="2021-04-27",output="df"):
+def readHistPriceCMCapi(coinID,out=True,start="2021-04-25",end="2021-04-27",output="df"):
     # output="df" for dataframe, output="dict" for dictionary
     erg = {}
     start = datetime.strptime(start, "%Y-%m-%d")
@@ -212,7 +212,7 @@ def readHistPriceCMCapi(coinID,out=True,start="2017-01-01",end="2021-04-27",outp
 
     # coinID = "1,1027,1839,52,825,2010,74,6636,7083,2"
     # coinID = "2010,74,6636,7083,2"
-    # coinID = "1,1027,1839,52,825"
+    coinID = "1,1027,1839,52,825"
     
     link = f"https://web-api.coinmarketcap.com/v1/cryptocurrency/ohlcv/historical?id={coinID}&convert=USD&time_start={startISO}&time_end={endISO}"      
     response = requests.get(link).json()   
@@ -220,6 +220,11 @@ def readHistPriceCMCapi(coinID,out=True,start="2017-01-01",end="2021-04-27",outp
     listFinal = []
     # loop trough individual coin
     for key, val in response["data"].items():
+
+        print(key)
+        print(val)
+        exit()
+
         if out: print (f"Reading price data for {val['symbol']} ...")          
         id = val["id"]
         name = val["name"]
@@ -249,17 +254,18 @@ def readHistPriceCMCapi(coinID,out=True,start="2017-01-01",end="2021-04-27",outp
 
 def readCoinsIDs():
     link = f"https://web-api.coinmarketcap.com/v1/cryptocurrency/map?sort=cmc_rank"
-    response = requests.get(link).json()
-    dataErg = response["data"]
-    return dataErg
+    response = requests.get(link).json()          
+    dataErg = response["data"]       
+    df = pandas.DataFrame(dataErg)            
+    return df
 
 
 if __name__ == '__main__':
     SUMMARY = False
     HISTPRICE = False
     HISTPRICE_API_DICT = False
-    HISTPRICE_API_DF = True
-    READCOINS_API = False
+    HISTPRICE_API_DF = False
+    READCOINS_API = True
     COIN_INIT = False
 
     coin = "bitcoin"
@@ -281,10 +287,7 @@ if __name__ == '__main__':
     if COIN_INIT:
         for i,e in enumerate(ergList):
             print(f"{i+1}: {e}")
-    elif READCOINS_API:
-        for i in erg:
-            print(i)
-    elif HISTPRICE_API_DF:
+    elif HISTPRICE_API_DF or READCOINS_API:
         print(erg)
     else:
         for key, val in erg.items (): print (f"{key} => {val} {type(val)}")  
