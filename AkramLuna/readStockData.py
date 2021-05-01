@@ -199,24 +199,28 @@ for stock in TEST_STOCKS:
     # print(erg)
 
     #  read quandl
-    quandlMain = readQuandlMain(stock)
+    # quandlMain = readQuandlMain(stock)
     # quandlMain2 = readQuandlMain(stock, dateFrom="2018-01-01", timeDim ="MRT")
     # # quandlMain3 = readQuandlMain(stock, dateFrom="2018-01-01")
     # print (quandlMain.iloc[-1])
-    for i,v in quandlMain.iloc[-1].items():
-        print(i, v)    
+    # for i,v in quandlMain.iloc[-1].items():
+    #     print(i, v)    
 
     # quandlMetadata = readQuandlMetadata(stock)
     # print(quandlMetadata)
     # for i,v in quandlMetadata.iterrows():
     #     print(i, v)       
     
-    # quandlDaily = readQuandlDaily(stock)
+    quandlDaily = readQuandlDaily(stock)
+    quandlDaily["date"] = quandlDaily["date"].dt.date
+    print(quandlDaily["date"].iloc[-1])
+    print(type(quandlDaily["date"].iloc[-1]))
     
     # quandlActions = readQuandlActions(stock)
     # print (quandlActions)    
     
     # quandlPrices = readQuandlPrices(stock)
+    # print(quandlPrices)
 
 
 

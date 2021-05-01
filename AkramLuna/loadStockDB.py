@@ -1,6 +1,7 @@
 import quandl
 import os
 import pandas as pd
+import mysql.connector
 from dotenv import load_dotenv, find_dotenv
 from benzinga import news_data
 from datetime import datetime, timedelta
@@ -8,13 +9,22 @@ from datetime import date
 import yfinance as yf
 import pandas
 import xlsxwriter
+import mysql.connector
 
-load_dotenv(find_dotenv()) 
-QUANDL_API = os.environ.get("QUANDL_API")
-quandl.ApiConfig.api_key=QUANDL_API
-BENZINGA_API = os.environ.get("BENZINGA_API")
-
-TEST_STOCKS = ["AAPL","FB","AMZN","CAT","FB"]
+def sql_connector(hostPM, userPM, passwdPM, databasePM):
+    """
+    create cursor and db-connector for database
+    local Maria-DB: (host="localhost", user="root", passwd="I65faue#MB7#", database="stockdb")
+    local MySQL-DB: (host="localhost",user="root",passwd="I65faue#ML5#",database="stockdb")
+    a2hosting.com database: (host="nl1-ss18.a2hosting.com", user="rapidtec_Rapid1898", passwd="I65faue#AG9#", database="rapidtec_stockdb")
+    :param hostPM: hostname
+    :param userPM: username
+    :param passwdPM: password
+    :param databasePM: database name
+    :return: db-cursor and db-connector
+    """
+    mydb = mysql.connector.connect (host=hostPM, user=userPM, passwd=passwdPM, database=databasePM)
+    return(mydb.cursor(),mydb)
 
 def readQuandlMain(ticker, dateFrom=None, timeDim=None):
     """
@@ -50,7 +60,7 @@ def readQuandlEvents(ticker):
     return(erg)
 
 def readQuandlMetadata(ticker):
-    erg = quandl.get_table('SHARADAR/TICKERS', table='SF1', ticker='AAPL')
+    erg = quandl.get_table('SHARADAR/TICKERS', table='SF1', ticker=ticker)
     return(erg)
 
 def readQuandlDaily(ticker):
@@ -60,7 +70,8 @@ def readQuandlDaily(ticker):
     Args:
         ticker (str): ticker-symbol
     """
-    erg = quandl.get_table('SHARADAR/DAILY', ticker='AAPL')
+    erg = quandl.get_table('SHARADAR/DAILY', ticker=ticker)
+    erg["date"] = erg["date"].dt.date
     return(erg)
 
 def readQuandlActions(ticker):
@@ -70,7 +81,7 @@ def readQuandlActions(ticker):
     Args:
         ticker (str): ticker-symbol
     """
-    erg = quandl.get_table('SHARADAR/ACTIONS', ticker='AAPL')
+    erg = quandl.get_table('SHARADAR/ACTIONS', ticker=ticker)
     return(erg)
 
 def readQuandlPrices(ticker):
@@ -80,7 +91,7 @@ def readQuandlPrices(ticker):
     Args:
         ticker (str): ticker-symbol
     """
-    erg = quandl.get('WIKI/AAPL')
+    erg = quandl.get(f"WIKI/{ticker}")   
     return(erg)
 
 def readBenzingaNews(ticker, date_from=None, date_to=None, maxCount=100, limit4PM=True):
@@ -188,107 +199,94 @@ def readYFPrices(ticker,startDate=None,endDate=None):
     return(erg)
 
 
-for stock in TEST_STOCKS:
-    # quandlMain = readQuandlMain(stock)
-    # quandlMain2 = readQuandlMain(stock, dateFrom="2018-01-01", timeDim ="MRT")
-    # # quandlMain3 = readQuandlMain(stock, dateFrom="2018-01-01")
-    # quandlEvents = readQuandlEvents(stock)
-    # quandlMetadata = readQuandlMetadata(stock)
-    # quandlDaily = readQuandlDaily(stock)
-    # quandlActions = readQuandlActions(stock)
-    # quandlPrices = readQuandlPrices(stock)
-  
-    # benzingNews1 = readBenzingaNews(stock)
-    # benzingNews2 = readBenzingaNews(stock, date_from="2021-04-21", date_to="2021-04-21")
-    # benzingNews3 = readBenzingaNews(stock, date_from="2021-04-21")
-    # benzingNews4 = readBenzingaNews(stock, date_to="2021-04-21")
-    # benzingNews5 = readBenzingaNews(stock,limit4PM=False)   
-    # outputFinal = []
-    # for idx, elem in enumerate(benzingNews1):
-    #     outputHeader = []
-    #     outputRow = []
-    #     for key, val in elem.items ():
-    #         if idx == 0:
-    #             outputHeader.append(key)
-    #         if key in ["image","channels","stocks","tags"]:
-    #             if val != []:
-    #                 outputCell = []              
-    #                 for inpCell in val:
-    #                     for k,v in inpCell.items():
-    #                         outputCell.append(v)
-    #                 outputRow.append(outputCell)
-    #             else:
-    #                 outputRow.append("-")
-    #         else:
-    #             outputRow.append(val)
-    #     if idx == 0:
-    #         outputFinal.append(outputHeader)     
-    #     outputFinal.append(outputRow)    
-    
-    # for idx, elem in enumerate(benzingNews1):
-    #     print(f"\n\nStory {idx}:")
-    #     for key, val in elem.items ():
-    #         # if key == "created":
-    #         print(f"{key} => {val}")    
-    #     exit()
+if __name__ == '__main__':
+
+    load_dotenv(find_dotenv()) 
+    QUANDL_API = os.environ.get("QUANDL_API")
+    quandl.ApiConfig.api_key=QUANDL_API
+    BENZINGA_API = os.environ.get("BENZINGA_API")
+    MYSQL_PW = os.environ.get("MYSQL_PW")
+
+    c,mydb = sql_connector("localhost","root","I65faue#MB7#","stockdb")
+
+    WORKON_MAIN = False
+    WORKON_FINANCIALS = False
+    WORKON_DAILYDATA = True
+    WORKON_PRICES = False
+    WORKON_NEWS = False
+
+    # read stocks to workon from stockmain
+    sql = "SELECT ticker FROM stockdb_akramluna.stockmain"
+    var = []
+    c.execute (sql, var)
+    workTickers = []
+    for dt_cont in c.fetchall():
+        workTickers.append(dt_cont[0])
+
+    # read data and update db
+    for stock in workTickers:
+        # read data
+        if WORKON_MAIN:
+            quandlMetadata = ""
+            quandlMetadata = readQuandlMetadata(stock)
+            # for i,v in quandlMetadata.iterrows(): print(f"DEBUG: {i}, {v}")     
+        if WORKON_DAILYDATA:       
+            quandlDaily = readQuandlDaily(stock)   
+            print(quandlDaily)
+            exit()
 
 
-    dataYF = readYFSummary(stock)
-    # Summary Infos
-    tmpKey = []
-    tmpVal = []
-    listFinal = []
-    for key, val in dataYF.info.items ():
-        tmpKey.append(key)
-        tmpVal.append(val)
-        if val not in [False,None]:
-            print (f"{key} => {val} {type(val)}")
-    listFinal.append(tmpKey)
-    listFinal.append(tmpVal)
-    
-    YFfinancials = dataYF.financials
-    YFdividends = dataYF.dividends
-    YFsplits = dataYF.splits
-    YFmajorholders = dataYF.major_holders
-    YFinstholders = dataYF.institutional_holders
-    YFbalsheet = dataYF.balance_sheet
-    YFcashflow = dataYF.cashflow
-    YFearnings = dataYF.earnings
-    YFsustain = dataYF.sustainability
-    YFrecommend = dataYF.recommendations
-    YFcalendar = dataYF.calendar  
-    YFprices = readYFPrices(stock)
-    # pricesYF = readYFPrices(stock,startDate="2020-01-01",endDate="2020-12-31")
-    # pricesYF = readYFPrices(stock,startDate="2020-01-01")
-    # pricesYF = readYFPrices(stock,endDate="1999-12-31")
-    # print(pricesYF)
-    
-    writer = pd.ExcelWriter('basisReadData.xlsx', engine='xlsxwriter')
-    quandlMain.to_excel(writer, sheet_name="quandlMain"),	
-    quandlMain2.to_excel(writer, sheet_name="quandlMain_From2018_MRT")
-    quandlEvents.to_excel(writer, sheet_name="quandlEvents")
-    quandlMetadata.to_excel(writer, sheet_name="quandlMetadata")
-    quandlDaily.to_excel(writer, sheet_name="quandlDaily")
-    quandlActions.to_excel(writer, sheet_name="quandlActions")
-    quandlPrices.to_excel(writer, sheet_name="quandlPrices")
-    pd.DataFrame (outputFinal).to_excel (writer, sheet_name="benzingNews", header=False, index=False) 
-    pd.DataFrame (listFinal).to_excel (writer, sheet_name="yFinance Info", header=False, index=False) 
-    YFfinancials.to_excel(writer, sheet_name="YFfinancials")
-    YFdividends.to_excel(writer, sheet_name="YFdividends")
-    YFsplits.to_excel(writer, sheet_name="YFsplits")
-    YFmajorholders.to_excel(writer, sheet_name="YFmajorholders")
-    YFinstholders.to_excel(writer, sheet_name="YFinstholders")
-    YFbalsheet.to_excel(writer, sheet_name="YFbalsheet")
-    YFcashflow.to_excel(writer, sheet_name="YFcashflow")
-    YFearnings.to_excel(writer, sheet_name="YFearnings")
-    YFsustain.to_excel(writer, sheet_name="YFsustain")
-    YFrecommend.to_excel(writer, sheet_name="YFrecommend")
-    YFcalendar.to_excel(writer, sheet_name="YFcalendar")
-    YFprices.to_excel(writer, sheet_name="YFprices")
-    writer.save()
-  
+        # update db
+        if WORKON_MAIN:
+            dt64 = quandlMetadata["firstpricedate"].values[0]
+            dt64Time = str(dt64).split("T")[0]
+            tmpInitialDate = datetime.strptime(dt64Time, "%Y-%m-%d")                
+            tmpOlder1Year = datetime.today() - timedelta(days=365)
+            if tmpInitialDate < tmpOlder1Year:
+                tmpOlder1Year = "Y"
+            else: 
+                tmpOlder1Year = "N"         
 
-    exit()
+            sql = "UPDATE stockdb_akramluna.stockmain " \
+                "SET lastUpdate=%s," \
+                "name=%s," \
+                "currency=%s," \
+                "companySite=%s," \
+                "firstPriceDate=%s," \
+                "older1Year=%s," \
+                "sector=%s," \
+                "industry=%s," \
+                "famaindustry=%s" \
+                " WHERE ticker=%s"
+            cont = [(datetime.today (),
+                    quandlMetadata["name"].values[0],
+                    quandlMetadata["currency"].values[0],
+                    quandlMetadata["companysite"].values[0],
+                    tmpInitialDate,
+                    tmpOlder1Year,
+                    quandlMetadata["sector"].values[0],
+                    quandlMetadata["industry"].values[0],
+                    quandlMetadata["famaindustry"].values[0],
+                    stock)]        
+
+            c.executemany (sql, cont)
+            mydb.commit ()
+            print (f"Stock Main updated for {stock}...")
+
+        if WORKON_DAILYDATA:
+            # read max data from stockdailydata
+            sql = "SELECT MAX(dateMeasure) FROM stockdb_akramluna.stockdailydata WHERE ticker = %s"
+            var = [(stock)]
+            c.execute (sql, var)
+            dt_exist = []
+            lastDate = c.fetchone ()[0]
+
+            for idx,elem in quandlDaily.iterrows():
+                print(idx)
+                # elem = elem["date"].to_pydatetime()
+                print(elem["date"])
+                print(type(elem["date"]))
+                exit()
 
 
-       
+           
