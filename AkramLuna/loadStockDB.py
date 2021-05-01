@@ -1,8 +1,3 @@
-# Docu: https://www.quandl.com/databases/SF1/documentation
-# Time Dimensions: https://www.quandl.com/databases/SF1/documentation?anchor=dimensions
-# Data Organization: https://docs.quandl.com/docs/data-organization
-# EventCodes: https://www.quandl.com/tables/SF1/SHARADAR-INDICATORS - download excel and search for eventcodes
-
 import quandl
 import os
 import pandas as pd
@@ -194,40 +189,20 @@ def readYFPrices(ticker,startDate=None,endDate=None):
 
 
 for stock in TEST_STOCKS:
-   
-    # erg = quandl.get_table('SHARADAR/INDICATORS', table='SF1')
-    # print(erg)
-
-    #  read quandl
-    quandlMain = readQuandlMain(stock)
+    # quandlMain = readQuandlMain(stock)
     # quandlMain2 = readQuandlMain(stock, dateFrom="2018-01-01", timeDim ="MRT")
     # # quandlMain3 = readQuandlMain(stock, dateFrom="2018-01-01")
-    # print (quandlMain.iloc[-1])
-    for i,v in quandlMain.iloc[-1].items():
-        print(i, v)    
-
+    # quandlEvents = readQuandlEvents(stock)
     # quandlMetadata = readQuandlMetadata(stock)
-    # print(quandlMetadata)
-    # for i,v in quandlMetadata.iterrows():
-    #     print(i, v)       
-    
     # quandlDaily = readQuandlDaily(stock)
-    
     # quandlActions = readQuandlActions(stock)
-    # print (quandlActions)    
-    
     # quandlPrices = readQuandlPrices(stock)
-
-
-
-    # # # read benzingNews
+  
     # benzingNews1 = readBenzingaNews(stock)
-    # print(benzingNews1)
-
-    # # benzingNews2 = readBenzingaNews(stock, date_from="2021-04-21", date_to="2021-04-21")
-    # # benzingNews3 = readBenzingaNews(stock, date_from="2021-04-21")
-    # # benzingNews4 = readBenzingaNews(stock, date_to="2021-04-21")
-    # # benzingNews5 = readBenzingaNews(stock,limit4PM=False)   
+    # benzingNews2 = readBenzingaNews(stock, date_from="2021-04-21", date_to="2021-04-21")
+    # benzingNews3 = readBenzingaNews(stock, date_from="2021-04-21")
+    # benzingNews4 = readBenzingaNews(stock, date_to="2021-04-21")
+    # benzingNews5 = readBenzingaNews(stock,limit4PM=False)   
     # outputFinal = []
     # for idx, elem in enumerate(benzingNews1):
     #     outputHeader = []
@@ -250,11 +225,6 @@ for stock in TEST_STOCKS:
     #         outputFinal.append(outputHeader)     
     #     outputFinal.append(outputRow)    
     
-    # for idx,elem in enumerate(outputFinal):
-    #     print(f"\n\n{idx}")
-    #     for idx2,elem2 in enumerate(elem):
-    #         print(idx2,elem2)
-
     # for idx, elem in enumerate(benzingNews1):
     #     print(f"\n\nStory {idx}:")
     #     for key, val in elem.items ():
@@ -263,63 +233,59 @@ for stock in TEST_STOCKS:
     #     exit()
 
 
-    # # read YFinance
-    # dataYF = readYFSummary(stock)
-    # # Summary Infos
-    # tmpKey = []
-    # tmpVal = []
-    # listFinal = []
-    # for key, val in dataYF.info.items ():
-    #     tmpKey.append(key)
-    #     tmpVal.append(val)
-    #     if val not in [False,None]:
-    #         print (f"{key} => {val} {type(val)}")
-    # listFinal.append(tmpKey)
-    # listFinal.append(tmpVal)
-    # YFfinancials = dataYF.financials
-    # YFdividends = dataYF.dividends
-    # YFsplits = dataYF.splits
-    # YFmajorholders = dataYF.major_holders
-    # YFinstholders = dataYF.institutional_holders
-    # YFbalsheet = dataYF.balance_sheet
-    # YFcashflow = dataYF.cashflow
-    # YFearnings = dataYF.earnings
-    # print(YFearnings)
-    # YFsustain = dataYF.sustainability
-    # YFrecommend = dataYF.recommendations
-    # YFcalendar = dataYF.calendar  
-    # print(YFcalendar)
-    # pricesYF = readYFPrices(stock)
-    # # pricesYF = readYFPrices(stock,startDate="2020-01-01",endDate="2020-12-31")
-    # # pricesYF = readYFPrices(stock,startDate="2020-01-01")
-    # # pricesYF = readYFPrices(stock,endDate="1999-12-31")
+    dataYF = readYFSummary(stock)
+    # Summary Infos
+    tmpKey = []
+    tmpVal = []
+    listFinal = []
+    for key, val in dataYF.info.items ():
+        tmpKey.append(key)
+        tmpVal.append(val)
+        if val not in [False,None]:
+            print (f"{key} => {val} {type(val)}")
+    listFinal.append(tmpKey)
+    listFinal.append(tmpVal)
+    
+    YFfinancials = dataYF.financials
+    YFdividends = dataYF.dividends
+    YFsplits = dataYF.splits
+    YFmajorholders = dataYF.major_holders
+    YFinstholders = dataYF.institutional_holders
+    YFbalsheet = dataYF.balance_sheet
+    YFcashflow = dataYF.cashflow
+    YFearnings = dataYF.earnings
+    YFsustain = dataYF.sustainability
+    YFrecommend = dataYF.recommendations
+    YFcalendar = dataYF.calendar  
+    YFprices = readYFPrices(stock)
+    # pricesYF = readYFPrices(stock,startDate="2020-01-01",endDate="2020-12-31")
+    # pricesYF = readYFPrices(stock,startDate="2020-01-01")
+    # pricesYF = readYFPrices(stock,endDate="1999-12-31")
     # print(pricesYF)
-
-
-    # # write to excel
-    # writer = pd.ExcelWriter('basisReadData.xlsx', engine='xlsxwriter')
-    # quandlMain.to_excel(writer, sheet_name="quandlMain"),	
-    # quandlMain2.to_excel(writer, sheet_name="quandlMain_From2018_MRT")
-    # quandlEvents.to_excel(writer, sheet_name="quandlEvents")
-    # quandlMetadata.to_excel(writer, sheet_name="quandlMetadata")
-    # quandlDaily.to_excel(writer, sheet_name="quandlDaily")
-    # quandlActions.to_excel(writer, sheet_name="quandlActions")
-    # quandlPrices.to_excel(writer, sheet_name="quandlPrices")
-    # pd.DataFrame (outputFinal).to_excel (writer, sheet_name="benzingNews", header=False, index=False) 
-    # pd.DataFrame (listFinal).to_excel (writer, sheet_name="yFinance Info", header=False, index=False) 
-    # YFfinancials.to_excel(writer, sheet_name="YFfinancials")
-    # YFdividends.to_excel(writer, sheet_name="YFdividends")
-    # YFsplits.to_excel(writer, sheet_name="YFsplits")
-    # YFmajorholders.to_excel(writer, sheet_name="YFmajorholders")
-    # YFinstholders.to_excel(writer, sheet_name="YFinstholders")
-    # YFbalsheet.to_excel(writer, sheet_name="YFbalsheet")
-    # YFcashflow.to_excel(writer, sheet_name="YFcashflow")
-    # YFearnings.to_excel(writer, sheet_name="YFearnings")
-    # YFsustain.to_excel(writer, sheet_name="YFsustain")
-    # YFrecommend.to_excel(writer, sheet_name="YFrecommend")
-    # YFcalendar.to_excel(writer, sheet_name="YFcalendar")
-    # YFprices.to_excel(writer, sheet_name="YFprices")
-    # writer.save()
+    
+    writer = pd.ExcelWriter('basisReadData.xlsx', engine='xlsxwriter')
+    quandlMain.to_excel(writer, sheet_name="quandlMain"),	
+    quandlMain2.to_excel(writer, sheet_name="quandlMain_From2018_MRT")
+    quandlEvents.to_excel(writer, sheet_name="quandlEvents")
+    quandlMetadata.to_excel(writer, sheet_name="quandlMetadata")
+    quandlDaily.to_excel(writer, sheet_name="quandlDaily")
+    quandlActions.to_excel(writer, sheet_name="quandlActions")
+    quandlPrices.to_excel(writer, sheet_name="quandlPrices")
+    pd.DataFrame (outputFinal).to_excel (writer, sheet_name="benzingNews", header=False, index=False) 
+    pd.DataFrame (listFinal).to_excel (writer, sheet_name="yFinance Info", header=False, index=False) 
+    YFfinancials.to_excel(writer, sheet_name="YFfinancials")
+    YFdividends.to_excel(writer, sheet_name="YFdividends")
+    YFsplits.to_excel(writer, sheet_name="YFsplits")
+    YFmajorholders.to_excel(writer, sheet_name="YFmajorholders")
+    YFinstholders.to_excel(writer, sheet_name="YFinstholders")
+    YFbalsheet.to_excel(writer, sheet_name="YFbalsheet")
+    YFcashflow.to_excel(writer, sheet_name="YFcashflow")
+    YFearnings.to_excel(writer, sheet_name="YFearnings")
+    YFsustain.to_excel(writer, sheet_name="YFsustain")
+    YFrecommend.to_excel(writer, sheet_name="YFrecommend")
+    YFcalendar.to_excel(writer, sheet_name="YFcalendar")
+    YFprices.to_excel(writer, sheet_name="YFprices")
+    writer.save()
   
 
     exit()
