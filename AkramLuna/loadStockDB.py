@@ -315,6 +315,7 @@ def readQuandlDaily(ticker):
     """
     erg = quandl.get_table('SHARADAR/DAILY', ticker=ticker)
     erg["date"] = erg["date"].dt.date
+    erg = erg.sort_values(by="date",ascending=True)
     return(erg)
 
 def readQuandlActions(ticker):
@@ -452,8 +453,8 @@ if __name__ == '__main__':
 
     c,mydb = sql_connector("localhost","root","I65faue#MB7#","stockdb")
 
-    WORKON_MAIN = True
-    WORKON_FINANCIALS = False
+    WORKON_MAIN = False
+    WORKON_FINANCIALS = True
     WORKON_DAILYDATA = False
     WORKON_PRICES = False
     WORKON_NEWS = False
@@ -476,7 +477,8 @@ if __name__ == '__main__':
             yahooSummary = read_yahoo_summary(stock,att=3,default=None)
         if WORKON_DAILYDATA:       
             quandlDaily = readQuandlDaily(stock)   
-            print(quandlDaily)
+        if WORKON_FINANCIALS:    
+            quandlFinancials = readQuandlMain(stock)    
 
         # update db
         if WORKON_MAIN:
@@ -539,15 +541,66 @@ if __name__ == '__main__':
 
         if WORKON_DAILYDATA:
             # read max data from stockdailydata
+            print(f"Inserting daily data for {stock}...")
             sql = "SELECT MAX(dateMeasure) FROM stockdb_akramluna.stockdailydata WHERE ticker = %s"
             var = [(stock)]
             c.execute (sql, var)
             dt_exist = []
-            lastDate = c.fetchone ()[0]
+            lastDate = c.fetchone ()[0]         
+            if lastDate != None:                            
+                print(f"Insert daily data from {lastDate}...")
+                quandlDaily = quandlDaily = quandlDaily[(quandlDaily['date'] > lastDate)]
+            else:
+                print(f"Insert all daily data for {stock}...")
 
             for idx,elem in quandlDaily.iterrows():
-                print(idx)
-                # elem = elem["date"].to_pydatetime()
-                print(elem["date"])
-                print(type(elem["date"]))
-                exit()           
+                sql = "INSERT INTO stockdb_akramluna.stockdailydata (" \
+                      "ticker," \
+                      "dateMeasure," \
+                      "ev," \
+                      "evToEbit," \
+                      "evToEbitda," \
+                      "marketCap," \
+                      "pbRatio," \
+                      "peRatio," \
+                      "psRatio)" \
+                      " VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)"
+                cont = [(stock,
+                        elem["date"],
+                        float(elem["ev"]),
+                        float(elem["evebit"]),
+                        float(elem["evebitda"]),
+                        float(elem["marketcap"]),
+                        float(elem["pb"]),
+                        float(elem["pe"]),
+                        float(elem["ps"]))]
+                c.executemany (sql, cont)
+                mydb.commit ()
+
+                if idx % 500 == 0 and idx > 0:
+                    print(f"Daily rows are inserted for {stock} till {elem['date']}")
+
+        if WORKON_FINANCIALS:      
+
+            DELETE FROM stockdb_akramluna.stockfinancials WHERE condition; 
+
+            sql = "DELETE FROM stockdb_akramluna " \
+                  "ticker," \
+                  "date_price," \
+                  "price_open," \
+                  "price_high," \
+                  "price_low," \
+                  "price_close," \
+                  "price_adj_close," \
+                  "volume)" \
+                  "VALUES (%s,%s,%s,%s,%s,%s,%s,%s)"
+            cont = [(stock,
+                     key,
+                     val[0],
+                     val[1],
+                     val[2],
+                     val[3],
+                     val[4],
+                     val[5])]
+            c.executemany (sql, cont)
+            mydb.commit ()
