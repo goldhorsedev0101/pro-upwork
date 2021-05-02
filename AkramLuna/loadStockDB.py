@@ -451,7 +451,7 @@ if __name__ == '__main__':
     BENZINGA_API = os.environ.get("BENZINGA_API")
     MYSQL_PW = os.environ.get("MYSQL_PW")
 
-    c,mydb = sql_connector("localhost","root","I65faue#MB7#","stockdb")
+    c,mydb = sql_connector("localhost","root","I65faue#MB7#","stockdb_akramluna")
 
     WORKON_MAIN = False
     WORKON_FINANCIALS = True
@@ -478,7 +478,11 @@ if __name__ == '__main__':
         if WORKON_DAILYDATA:       
             quandlDaily = readQuandlDaily(stock)   
         if WORKON_FINANCIALS:    
-            quandlFinancials = readQuandlMain(stock)    
+            quandlFinancials = readQuandlMain(stock)  
+            # pd.set_option('display.max_rows', None)
+            # for elem in quandlFinancials.iterrows():
+            #     print(elem)
+            #     exit()
 
         # update db
         if WORKON_MAIN:
@@ -581,26 +585,65 @@ if __name__ == '__main__':
                     print(f"Daily rows are inserted for {stock} till {elem['date']}")
 
         if WORKON_FINANCIALS:      
-
-            DELETE FROM stockdb_akramluna.stockfinancials WHERE condition; 
-
-            sql = "DELETE FROM stockdb_akramluna " \
-                  "ticker," \
-                  "date_price," \
-                  "price_open," \
-                  "price_high," \
-                  "price_low," \
-                  "price_close," \
-                  "price_adj_close," \
-                  "volume)" \
-                  "VALUES (%s,%s,%s,%s,%s,%s,%s,%s)"
-            cont = [(stock,
-                     key,
-                     val[0],
-                     val[1],
-                     val[2],
-                     val[3],
-                     val[4],
-                     val[5])]
+            # delete all existing data
+            sql = "DELETE FROM stockdb_akramluna.stockfinancials " \
+                  " WHERE ticker=%s"
+            cont = [(stock,)]
             c.executemany (sql, cont)
-            mydb.commit ()
+
+            # load data for stock
+            for idx,elem in quandlFinancials.iterrows():
+                sql = "INSERT INTO stockdb_akramluna.stockfinancials (" \
+                      "ticker," \
+                      "dateCal," \
+                      "dateReport," \
+                      "price," \
+                      "netinc," \
+                      "marketcap" \
+                      "assets" \
+                      "cashneq" \
+                      "currentratio" \
+                      "debt" \
+                      "ebit" \
+                      "ebitda" \
+                      "ebitdamargin" \
+                      "eps" \
+                      "equity" \
+                      "ev" \
+                      "evebit" \
+                      "evebidta" \
+                      "fcf" \
+                      "fcfps" \
+                      "gp" \
+                      "grossmargin" \
+                      "inventory" \
+                      "investments" \
+                      "liabilities" \
+                      "ncf" \
+                      "netmargin" \
+                      "payables" \
+                      "pb" \
+                      "pe" \
+                      "ps" \
+                      "receivables" \
+                      "revenue" \
+                      "rnd" \
+                      "roa" \
+                      "roe" \
+                      "roic" \
+                      "ros" \
+                      "tangibles" \
+                      "workingcapital)" \
+                      " VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
+                cont = [(stock,
+                        elem["calendardate"].to_pydatetime(),
+                        elem["reportperiod"].to_pydatetime(),
+                        float(elem["price"]),
+                        float(elem["netinc"]),
+                        float(elem["marketcap"]),
+                        float(elem["netinc"]))]
+                c.executemany (sql, cont)
+                mydb.commit ()
+            print (f"Stock Financials updated for {stock}...")
+            exit()
+ 
