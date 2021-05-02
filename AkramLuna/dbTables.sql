@@ -23,6 +23,7 @@ CREATE TABLE IF NOT EXISTS `stockdailydata` (
   `ev` float DEFAULT NULL,
   `evToEbit` float DEFAULT NULL,
   `evToEbitda` float DEFAULT NULL,
+  `marketCap` float DEFAULT NULL,
   `pbRatio` float DEFAULT NULL,
   `peRatio` float DEFAULT NULL,
   `psRatio` float DEFAULT NULL,
@@ -106,15 +107,26 @@ CREATE TABLE IF NOT EXISTS `stockfinancials` (
 -- Dumping structure for table stockdb_akramluna.stockmain
 CREATE TABLE IF NOT EXISTS `stockmain` (
   `ticker` varchar(20) NOT NULL,
-  `lastUpdate` timestamp NULL DEFAULT NULL,
+  `lastUpdate` datetime DEFAULT NULL,
   `name` varchar(50) DEFAULT NULL,
   `currency` varchar(10) DEFAULT NULL,
-  `comanySite` varchar(50) DEFAULT NULL,
+  `exchange` varchar(50) DEFAULT NULL,
+  `actPrice` float DEFAULT NULL,
+  `fiftyDayRangeFrom` float DEFAULT NULL,
+  `fiftyDayRangeTo` float DEFAULT NULL,
+  `marketCap` float DEFAULT NULL,
+  `beta` float DEFAULT NULL,
+  `price1YEst` float DEFAULT NULL,
+  `companySite` varchar(50) DEFAULT NULL,
   `firstPriceDate` date DEFAULT NULL,
   `older1Year` char(1) DEFAULT NULL,
   `sector` varchar(50) DEFAULT NULL,
   `industry` varchar(50) DEFAULT NULL,
   `famaindustry` varchar(50) DEFAULT NULL,
+  `nextEarningsDate` date DEFAULT NULL,
+  `lastDividendDate` date DEFAULT NULL,
+  `forwardDividend` float DEFAULT NULL,
+  `dividendYield` float DEFAULT NULL,
   PRIMARY KEY (`ticker`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
