@@ -82,7 +82,7 @@ def readQuandlPrices(ticker):
     """
     Read Prices Data from Quandl
     Return: dataframe with data
-    Args:
+    # Args:
         ticker (str): ticker-symbol
     """
     erg = quandl.get('WIKI/AAPL')
