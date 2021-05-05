@@ -9,11 +9,12 @@ import xlwings as xw
 
 START_DATE = "2017-01-01"
 TDAY = str(datetime.today().date())
-conn = sqlite3.connect("coinsTESTPricesDB.db")	
+conn = sqlite3.connect("coinsPricesDB.db")	
 
 READ_COINPRICES = False
 EXCEL = False
-ANALYSE = True
+CSV_OUTPUT = True
+ANALYSE = False
 
 coinsRank = cc.readCoinsIDs()
 countCoin = 0
@@ -52,6 +53,22 @@ if EXCEL:
 
 	with pd.ExcelWriter("example.xlsx") as writer:		
 		df.to_excel(writer, sheet_name="coinPrices")		
+
+if CSV_OUTPUT:
+	print(f"Reading price data from db...")
+	df = pd.read_sql_query("SELECT * FROM coinPrices", conn)	
+	conn.commit()
+	conn.close()
+
+	# filt = df["symbol"].isin(["LTC","BTC","ETG","AUG","BNB","XRP","ADA","DOGE","DOT","XLM"])
+	# df = df[filt]
+
+	# split in several csvs with max rows
+	splitLen = 1000000
+	for idx in range(0,len(df),splitLen):
+		print(f"Writing CSV-File Part {int(idx/splitLen+1)}...")
+		dfTemp = df.iloc[idx:idx+splitLen]
+		dfTemp.to_csv(f"coinPrices{int(idx/splitLen+1)}.csv", sep=';')
 
 if ANALYSE:
 	df = pd.read_sql_query("SELECT * FROM coinPrices", conn)	

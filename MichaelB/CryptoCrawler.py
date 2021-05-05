@@ -252,20 +252,23 @@ def readHistPriceCMCapi(coinID,out=True,start="2021-04-25",end="2021-04-27",outp
         erg = df.T.to_dict('list')
         return (erg)
 
-def readCoinsIDs():
-    link = f"https://web-api.coinmarketcap.com/v1/cryptocurrency/map?sort=cmc_rank"
-    response = requests.get(link).json()          
-    dataErg = response["data"]       
+def readCoinsIDs(status="active"):
+    if status == "active":
+        link = f"https://web-api.coinmarketcap.com/v1/cryptocurrency/map?sort=cmc_rank"
+    elif status == "deactive":
+        link = f"https://web-api.coinmarketcap.com/v1/cryptocurrency/map?listing_status=inactive"
+    response = requests.get(link).json()   
+    dataErg = response["data"] 
     df = pandas.DataFrame(dataErg)            
     return df
-
 
 if __name__ == '__main__':
     SUMMARY = False
     HISTPRICE = False
     HISTPRICE_API_DICT = False
     HISTPRICE_API_DF = False
-    READCOINS_API = True
+    READCOINS_API = False
+    READCOINS_API_DEACTIVE = False
     COIN_INIT = False
 
     coin = "bitcoin"
@@ -283,11 +286,12 @@ if __name__ == '__main__':
     if HISTPRICE_API_DF: erg = readHistPriceCMCapi(1)
     if COIN_INIT: ergList = readInitCMB()
     if READCOINS_API: erg = readCoinsIDs()
+    if READCOINS_API_DEACTIVE: erg = readCoinsIDs(status="deactive")
 
     if COIN_INIT:
         for i,e in enumerate(ergList):
             print(f"{i+1}: {e}")
-    elif HISTPRICE_API_DF or READCOINS_API:
+    elif HISTPRICE_API_DF or READCOINS_API or READCOINS_API_DEACTIVE:
         print(erg)
     else:
         for key, val in erg.items (): print (f"{key} => {val} {type(val)}")  
