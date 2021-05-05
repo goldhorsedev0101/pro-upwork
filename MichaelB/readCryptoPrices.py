@@ -1,7 +1,6 @@
 import sqlite3
 import CryptoCrawler as cc
-from datetime import datetime, timedelta
-from datetime import date
+from datetime import date, datetime, timedelta
 import pandas as pd
 import os
 import sys
