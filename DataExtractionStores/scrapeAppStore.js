@@ -5,7 +5,7 @@ const READ_AMOUNT = 200
 
 // read file
 let wb = XLSX.readFile(FN)
-let ws = wb.Sheets["Categories"];
+let ws = wb.Sheets["Parameters"];
 let ws2 = wb.Sheets["Apps"];
 
 // read parameters
@@ -86,20 +86,20 @@ async function main () {
       XLSX.utils.sheet_add_aoa(ws2, [[item.reviews]], {origin: `AD${rowNumber}`});
       XLSX.utils.sheet_add_aoa(ws2, [[item.currentVersionScore]], {origin: `AE${rowNumber}`});
       XLSX.utils.sheet_add_aoa(ws2, [[item.currentVersionReviews]], {origin: `AF${rowNumber}`});
-      // XLSX.utils.sheet_add_aoa(ws2, [[item.screenshots.toString()]], {origin: `AF${rowNumber}`});
-      // XLSX.utils.sheet_add_aoa(ws2, [[item.ipadScreenshots]], {origin: `AG${rowNumber}`});
-      // XLSX.utils.sheet_add_aoa(ws2, [[item.appletvScreenshots]], {origin: `AH${rowNumber}`});
-      // XLSX.utils.sheet_add_aoa(ws2, [[item.supportedDevices]], {origin: `AI${rowNumber}`});
+      XLSX.utils.sheet_add_aoa(ws2, [[item.supportedDevices]], {origin: `AG${rowNumber}`});
+      // XLSX.utils.sheet_add_aoa(ws2, [[item.screenshots.toString()]], {origin: `AH${rowNumber}`});
+      // XLSX.utils.sheet_add_aoa(ws2, [[item.ipadScreenshots]], {origin: `AI${rowNumber}`});
+      // XLSX.utils.sheet_add_aoa(ws2, [[item.appletvScreenshots]], {origin: `AJ${rowNumber}`});
       
-      // check if in-app-purchase keywords are in the description
-      let tmpArrSearchResults = []
-      let tmpDesc = item.description.toLowerCase()
-      searchWord.forEach((elem,idx) => {
-        if (tmpDesc.includes(elem)) {        
-          tmpArrSearchResults.push(elem)
-        }
-      })
-      XLSX.utils.sheet_add_aoa(ws2, [[tmpArrSearchResults.toString()]], {origin: `V${rowNumber}`});                                  
+      // // check if in-app-purchase keywords are in the description
+      // let tmpArrSearchResults = []
+      // let tmpDesc = item.description.toLowerCase()
+      // searchWord.forEach((elem,idx) => {
+      //   if (tmpDesc.includes(elem)) {        
+      //     tmpArrSearchResults.push(elem)
+      //   }
+      // })
+      // XLSX.utils.sheet_add_aoa(ws2, [[tmpArrSearchResults.toString()]], {origin: `V${rowNumber}`});                                  
       
       console.log(`${item.id} ${item.title} prepared for XLSX...`)
       rowNumber += 1
