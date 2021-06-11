@@ -40,25 +40,32 @@ for idx,appLink in enumerate(workAppLinks):
 
   print (f"Working on {appLink} in row {idxStock}...")
   link = appLink
-  page = requests.get (link)
-  soup = BeautifulSoup (page.content, "html.parser")
+
 
   # read ranknumber / rankcategory
-  erg = soup.find("header")
-  if erg != None:
-    erg2 = erg.find_all("li")
-    for e in erg2:
-      tmpText = e.text.strip()
-      if "#" in tmpText and "in" in tmpText:
-        rankNumber = int(tmpText.split(" ")[0].replace("#","").strip())
-        rankCategory = tmpText.split(" ")[-1].strip()
-        break
-    # print(f"DEBUG RankNumber: {rankNumber}")
-    # print(f"DEBUG RankCategory: {rankCategory}")
-    ws["AK" + str (idxStock)].value = rankNumber
-    ws["AL" + str (idxStock)].value = rankCategory
-  else:
-    print("RankNumber and RankCategory not readable - skipped....")
+  tries = 0
+  while tries < 1000:
+    page = requests.get (link)
+    soup = BeautifulSoup (page.content, "html.parser")
+    erg = soup.find("header")
+    if erg:
+      break
+    else:
+      print(f"No header found re-read - try {tries}...")    
+      tries += 1
+
+
+  erg2 = erg.find_all("li")
+  for e in erg2:
+    tmpText = e.text.strip()
+    if "#" in tmpText and "in" in tmpText:
+      rankNumber = int(tmpText.split(" ")[0].replace("#","").strip())
+      rankCategory = tmpText.split(" ")[-1].strip()
+      break
+  # print(f"DEBUG RankNumber: {rankNumber}")
+  # print(f"DEBUG RankCategory: {rankCategory}")
+  ws["AK" + str (idxStock)].value = rankNumber
+  ws["AL" + str (idxStock)].value = rankCategory
 
   # Check if in-app purchases are on the page
   inAppPurchase = True
