@@ -14,11 +14,11 @@ if (ws[`B1`] && ["YES","Y"].includes(ws[`B1`].v.toUpperCase())) {
   readAll = true
 }
 
-let searchWord = []
-if (ws[`D1`]) {
-  searchWord = ws[`D1`].v.split(",")
-  searchWord = searchWord.map(x => x.trim().toLowerCase())
-}
+// let searchWord = []
+// if (ws[`D1`]) {
+//   searchWord = ws[`D1`].v.split(",")
+//   searchWord = searchWord.map(x => x.trim().toLowerCase())
+// }
 
 // read column A with categories
 const maxRow = 2000

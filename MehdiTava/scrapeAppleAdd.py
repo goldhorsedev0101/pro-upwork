@@ -10,7 +10,7 @@ import sys, os
 import xlwings as xw
 
 SAVE_INTERVAL = 5
-WAIT = 3
+WAIT = 2
 startRow = 2
 FN = "ScrapeAppStore.xlsx"
 path = os.path.abspath(os.path.dirname(sys.argv[0]))
@@ -27,9 +27,19 @@ workAppLinks = [x for x in workAppLinks if x != None]
 if ws2["D1"].value != None:
     startRow = int(ws2["D1"].value)   
 if ws2["F1"].value != None:
-    WAIT = ws2["F1"].valuE
+    WAIT = ws2["F1"].value
 
 idxStock = 2
+
+options = Options()
+# options.add_argument('--headless')
+options.add_experimental_option ('excludeSwitches', ['enable-logging'])
+path = os.path.abspath (os.path.dirname (sys.argv[0]))
+if sys.platform == "win32": cd = '/chromedriver.exe'
+elif sys.platform == "linux": cd = '/chromedriver'
+elif sys.platform == "darwin": cd = '/chromedriver'
+driver = webdriver.Chrome (path + cd, options=options)
+
 for idx,appLink in enumerate(workAppLinks):
   if idxStock < startRow:
     idxStock += 1
@@ -38,15 +48,27 @@ for idx,appLink in enumerate(workAppLinks):
     print(f"Error - work stopped - working app-link \n{appLink}\n is not ident with value in F{idxStock}\n{ws['F' + str (idxStock)].value}")
     break
 
+  appLink = appLink.split("?")[0]
   print (f"Working on {appLink} in row {idxStock}...")
   link = appLink
 
+  headers = {
+      "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.77 Safari/537.36"
+  }
 
   # read ranknumber / rankcategory
   tries = 0
-  while tries < 1000:
-    page = requests.get (link)
-    soup = BeautifulSoup (page.content, "html.parser")
+  while tries < 1000:    
+    driver.get (link)
+    soup = BeautifulSoup (driver.page_source, 'html.parser')
+
+    # page = requests.get (link)
+    # soup = BeautifulSoup (page.content, "html.parser")
+
+    # print(soup)
+    # print(len(soup))
+    # exit()
+
     erg = soup.find("header")
     if erg:
       break
@@ -77,17 +99,16 @@ for idx,appLink in enumerate(workAppLinks):
   if inAppPurchase == True:
     ws["V" + str (idxStock)].value = "YES"
 
-    options = Options()
-    options.add_argument('--headless')
-    options.add_experimental_option ('excludeSwitches', ['enable-logging'])
-
-    path = os.path.abspath (os.path.dirname (sys.argv[0]))
-    if sys.platform == "win32": cd = '/chromedriver.exe'
-    elif sys.platform == "linux": cd = '/chromedriver'
-    elif sys.platform == "darwin": cd = '/chromedriver'
-    driver = webdriver.Chrome (path + cd, options=options)
-    driver.get (link)
-    time.sleep (WAIT)
+    # options = Options()
+    # options.add_argument('--headless')
+    # options.add_experimental_option ('excludeSwitches', ['enable-logging'])
+    # path = os.path.abspath (os.path.dirname (sys.argv[0]))
+    # if sys.platform == "win32": cd = '/chromedriver.exe'
+    # elif sys.platform == "linux": cd = '/chromedriver'
+    # elif sys.platform == "darwin": cd = '/chromedriver'
+    # driver = webdriver.Chrome (path + cd, options=options)
+    # driver.get (link)
+    # time.sleep (WAIT)
 
     # WebDriverWait wait = new WebDriverWait(driver, waitTime);
     # wait.until(ExpectedConditions.elementToBeClickable(locator));
@@ -95,9 +116,10 @@ for idx,appLink in enumerate(workAppLinks):
     try:
       driver.find_element_by_xpath ('/html/body/div[4]/div/main/div[2]/div/section[7]/div[1]/dl/div[9]/dd/ol/div/button').click ()
     except:
-      idxStock += 1
-      print("No In-App Purchase Info found - skipped...")
-      continue
+      # idxStock += 1
+      # print("No In-App Purchase Info found - skipped...")
+      # continue
+      pass
     # driver.find_element_by_xpath ('//*[@id="ember140"]/div/section[7]/div[1]/dl/div[9]/dd/ol/div/button').click ()
     time.sleep (WAIT)
     soup = BeautifulSoup (driver.page_source, 'html.parser')  # Read page with html.parser
@@ -132,6 +154,8 @@ for idx,appLink in enumerate(workAppLinks):
     ws["AH" + str (idxStock)].value = minPrice
     ws["AI" + str (idxStock)].value = maxPrice
     ws["AJ" + str (idxStock)].value = ergString
+  else:
+    ws["V" + str (idxStock)].value = ""
 
   idxStock += 1
   if idxStock % SAVE_INTERVAL == 0:
