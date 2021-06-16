@@ -10,7 +10,7 @@ import sys, os
 import xlwings as xw
 
 SAVE_INTERVAL = 5
-WAIT = 2
+WAIT = 3
 startRow = 2
 FN = "ScrapeAppStore.xlsx"
 path = os.path.abspath(os.path.dirname(sys.argv[0]))
@@ -31,15 +31,6 @@ if ws2["F1"].value != None:
 
 idxStock = 2
 
-options = Options()
-# options.add_argument('--headless')
-options.add_experimental_option ('excludeSwitches', ['enable-logging'])
-path = os.path.abspath (os.path.dirname (sys.argv[0]))
-if sys.platform == "win32": cd = '/chromedriver.exe'
-elif sys.platform == "linux": cd = '/chromedriver'
-elif sys.platform == "darwin": cd = '/chromedriver'
-driver = webdriver.Chrome (path + cd, options=options)
-
 for idx,appLink in enumerate(workAppLinks):
   if idxStock < startRow:
     idxStock += 1
@@ -48,7 +39,16 @@ for idx,appLink in enumerate(workAppLinks):
     print(f"Error - work stopped - working app-link \n{appLink}\n is not ident with value in F{idxStock}\n{ws['F' + str (idxStock)].value}")
     break
 
-  appLink = appLink.split("?")[0]
+  options = Options()
+  options.add_argument('--headless')
+  options.add_experimental_option ('excludeSwitches', ['enable-logging'])
+  path = os.path.abspath (os.path.dirname (sys.argv[0]))
+  if sys.platform == "win32": cd = '/chromedriver.exe'
+  elif sys.platform == "linux": cd = '/chromedriver'
+  elif sys.platform == "darwin": cd = '/chromedriver'
+  driver = webdriver.Chrome (path + cd, options=options)
+
+  # appLink = appLink.split("?")[0]
   print (f"Working on {appLink} in row {idxStock}...")
   link = appLink
 
@@ -58,7 +58,7 @@ for idx,appLink in enumerate(workAppLinks):
 
   # read ranknumber / rankcategory
   tries = 0
-  while tries < 1000:    
+  while tries < 100:    
     driver.get (link)
     soup = BeautifulSoup (driver.page_source, 'html.parser')
 
@@ -76,8 +76,14 @@ for idx,appLink in enumerate(workAppLinks):
       print(f"No header found re-read - try {tries}...")    
       tries += 1
 
+  if not erg:
+      idxStock += 1
+      driver.quit()
+      print (f"Acess to {appLink} in row {idxStock} not possible - skipped...")      
+      continue
 
   erg2 = erg.find_all("li")
+  rankNumber = rankCategory = False
   for e in erg2:
     tmpText = e.text.strip()
     if "#" in tmpText and "in" in tmpText:
@@ -86,8 +92,21 @@ for idx,appLink in enumerate(workAppLinks):
       break
   # print(f"DEBUG RankNumber: {rankNumber}")
   # print(f"DEBUG RankCategory: {rankCategory}")
-  ws["AK" + str (idxStock)].value = rankNumber
-  ws["AL" + str (idxStock)].value = rankCategory
+  if rankNumber:  
+    ws["AK" + str (idxStock)].value = rankNumber
+  else:
+    ws["AK" + str (idxStock)].value = "N/A"    
+  if rankCategory:
+    ws["AL" + str (idxStock)].value = rankCategory
+  else:
+    ws["AL" + str (idxStock)].value = "N/A"
+
+  # Check for editors choice
+  erg = soup.find("h3", string="Editors’ Choice")
+  if erg == None:
+    ws["AM" + str (idxStock)].value = ""
+  else:
+    ws["AM" + str (idxStock)].value = "YES"    
 
   # Check if in-app purchases are on the page
   inAppPurchase = True
@@ -139,6 +158,8 @@ for idx,appLink in enumerate(workAppLinks):
     maxPrice = 0
     minPrice = 9999999999
     for idx,elem in enumerate(ergList):
+      if "$" not in elem:
+        continue
       tmpPrice = float(elem.split("\n")[1].replace("$","".strip()))
       if tmpPrice < minPrice:
         minPrice = tmpPrice
@@ -161,6 +182,7 @@ for idx,appLink in enumerate(workAppLinks):
   if idxStock % SAVE_INTERVAL == 0:
     wb.save (fn)
     print ("Saved to disk...")
+  driver.quit()
 
 wb.save (fn)
 print ("Saved to disk...")

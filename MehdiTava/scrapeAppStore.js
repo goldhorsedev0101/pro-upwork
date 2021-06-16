@@ -21,7 +21,7 @@ if (ws[`B1`] && ["YES","Y"].includes(ws[`B1`].v.toUpperCase())) {
 // }
 
 // read column A with categories
-const maxRow = 2000
+let maxRow = 10000
 let arrColl = []
 let arrCat = []
 for (i=4; i<=maxRow; i++) {
@@ -33,6 +33,17 @@ for (i=4; i<=maxRow; i++) {
 }
 // console.log(arrColl)
 // console.log(arrCat)
+
+// read existing apps-ids
+let arrIDExis = []
+for (i=2; i<=maxRow; i++) {
+  if (ws2[`C${i}`] === undefined) {
+    break
+  }
+  arrIDExis.push(ws2[`C${i}`].v)
+}
+nextFreeRow = i
+// console.log(arrIDExis)
 
 async function getStoreCollection(coll,cat) {
   let result = await store.list({
@@ -46,7 +57,7 @@ async function getStoreCollection(coll,cat) {
 }
 
 async function main () {
-  let rowNumber = 2
+  // let rowNumber = 2
   for (i=0; i<arrColl.length; i++) {
     let erg = await getStoreCollection(arrColl[i],arrCat[i])
     // console.log(`Check Erg: ${erg.values()}`)
@@ -54,7 +65,19 @@ async function main () {
     // console.log(Object.keys(erg[0]))
     for (entry in erg) {}
     erg.forEach(function (item,index) {    
+      // check row-number to write data
+      if (arrIDExis.includes(item.id)) {
+        const dummyFunction = (elem) => elem === item.id
+        rowNumber = arrIDExis.findIndex(dummyFunction) + 2     
+      } else {
+        rowNumber = nextFreeRow
+        nextFreeRow += 1
+      }
+      // console.log(item.id)
+      // console.log(rowNumber)
       // console.log(item)
+
+      // write data to xlsx
       XLSX.utils.sheet_add_aoa(ws2, [[arrColl[i]]], {origin: `A${rowNumber}`});
       XLSX.utils.sheet_add_aoa(ws2, [[arrCat[i]]], {origin: `B${rowNumber}`});
       XLSX.utils.sheet_add_aoa(ws2, [[item.id]], {origin: `C${rowNumber}`});
@@ -86,7 +109,7 @@ async function main () {
       XLSX.utils.sheet_add_aoa(ws2, [[item.reviews]], {origin: `AD${rowNumber}`});
       XLSX.utils.sheet_add_aoa(ws2, [[item.currentVersionScore]], {origin: `AE${rowNumber}`});
       XLSX.utils.sheet_add_aoa(ws2, [[item.currentVersionReviews]], {origin: `AF${rowNumber}`});
-      XLSX.utils.sheet_add_aoa(ws2, [[item.supportedDevices]], {origin: `AG${rowNumber}`});
+      XLSX.utils.sheet_add_aoa(ws2, [[item.supportedDevices.toString()]], {origin: `AG${rowNumber}`});
       // XLSX.utils.sheet_add_aoa(ws2, [[item.screenshots.toString()]], {origin: `AH${rowNumber}`});
       // XLSX.utils.sheet_add_aoa(ws2, [[item.ipadScreenshots]], {origin: `AI${rowNumber}`});
       // XLSX.utils.sheet_add_aoa(ws2, [[item.appletvScreenshots]], {origin: `AJ${rowNumber}`});
@@ -102,7 +125,7 @@ async function main () {
       // XLSX.utils.sheet_add_aoa(ws2, [[tmpArrSearchResults.toString()]], {origin: `V${rowNumber}`});                                  
       
       console.log(`${item.id} ${item.title} prepared for XLSX...`)
-      rowNumber += 1
+      // rowNumber += 1
 
       // process.exit(1)      
     })
