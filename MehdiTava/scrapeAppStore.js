@@ -53,7 +53,11 @@ async function main () {
     // console.log(erg[0])
     // console.log(Object.keys(erg[0]))
     for (entry in erg) {}
-    erg.forEach(function (item,index) {    
+    erg.forEach(function (item,index) {  
+      // console.log(`Supported Tyee Devices: ${typeof(JSON.stringify(item.supportedDevices))}`)
+      // console.log(`Supported Devices: ${JSON.stringify(item.supportedDevices)}`)
+      // process.exit(1)
+
       // console.log(item)
       XLSX.utils.sheet_add_aoa(ws2, [[arrColl[i]]], {origin: `A${rowNumber}`});
       XLSX.utils.sheet_add_aoa(ws2, [[arrCat[i]]], {origin: `B${rowNumber}`});
@@ -86,20 +90,10 @@ async function main () {
       XLSX.utils.sheet_add_aoa(ws2, [[item.reviews]], {origin: `AD${rowNumber}`});
       XLSX.utils.sheet_add_aoa(ws2, [[item.currentVersionScore]], {origin: `AE${rowNumber}`});
       XLSX.utils.sheet_add_aoa(ws2, [[item.currentVersionReviews]], {origin: `AF${rowNumber}`});
-      XLSX.utils.sheet_add_aoa(ws2, [[item.supportedDevices]], {origin: `AG${rowNumber}`});
+      XLSX.utils.sheet_add_aoa(ws2, [[JSON.stringify(item.supportedDevices)]], {origin: `AG${rowNumber}`});
       // XLSX.utils.sheet_add_aoa(ws2, [[item.screenshots.toString()]], {origin: `AH${rowNumber}`});
       // XLSX.utils.sheet_add_aoa(ws2, [[item.ipadScreenshots]], {origin: `AI${rowNumber}`});
-      // XLSX.utils.sheet_add_aoa(ws2, [[item.appletvScreenshots]], {origin: `AJ${rowNumber}`});
-      
-      // // check if in-app-purchase keywords are in the description
-      // let tmpArrSearchResults = []
-      // let tmpDesc = item.description.toLowerCase()
-      // searchWord.forEach((elem,idx) => {
-      //   if (tmpDesc.includes(elem)) {        
-      //     tmpArrSearchResults.push(elem)
-      //   }
-      // })
-      // XLSX.utils.sheet_add_aoa(ws2, [[tmpArrSearchResults.toString()]], {origin: `V${rowNumber}`});                                  
+      // XLSX.utils.sheet_add_aoa(ws2, [[item.appletvScreenshots]], {origin: `AJ${rowNumber}`});                           
       
       console.log(`${item.id} ${item.title} prepared for XLSX...`)
       rowNumber += 1

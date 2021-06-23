@@ -19,7 +19,7 @@ wb = xw.Book (fn)
 ws = wb.sheets["Apps"] 
 ws2 = wb.sheets["Parameters"] 
 # read stocks for working on
-maxRow = 2000
+maxRow = 10000
 workAppLinks = ws.range ("F2:F10000").value
 workAppLinks = [x for x in workAppLinks if x != None]
 
@@ -59,6 +59,9 @@ for idx,appLink in enumerate(workAppLinks):
   # read ranknumber / rankcategory
   tries = 0
   while tries < 1000:    
+
+    print(f"DEBUG Link: {link}")
+
     driver.get (link)
     soup = BeautifulSoup (driver.page_source, 'html.parser')
 
