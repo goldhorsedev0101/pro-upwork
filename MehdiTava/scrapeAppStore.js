@@ -64,13 +64,6 @@ async function main () {
     // console.log(erg[0])
     // console.log(Object.keys(erg[0]))
     for (entry in erg) {}
-<<<<<<< HEAD
-    erg.forEach(function (item,index) {  
-      // console.log(`Supported Tyee Devices: ${typeof(JSON.stringify(item.supportedDevices))}`)
-      // console.log(`Supported Devices: ${JSON.stringify(item.supportedDevices)}`)
-      // process.exit(1)
-
-=======
     erg.forEach(function (item,index) {    
       // check row-number to write data
       if (arrIDExis.includes(item.id)) {
@@ -82,7 +75,6 @@ async function main () {
       }
       // console.log(item.id)
       // console.log(rowNumber)
->>>>>>> b2d060ed21648c709aad925629b3cf619840535f
       // console.log(item)
 
       // write data to xlsx
@@ -117,11 +109,7 @@ async function main () {
       XLSX.utils.sheet_add_aoa(ws2, [[item.reviews]], {origin: `AD${rowNumber}`});
       XLSX.utils.sheet_add_aoa(ws2, [[item.currentVersionScore]], {origin: `AE${rowNumber}`});
       XLSX.utils.sheet_add_aoa(ws2, [[item.currentVersionReviews]], {origin: `AF${rowNumber}`});
-<<<<<<< HEAD
-      XLSX.utils.sheet_add_aoa(ws2, [[JSON.stringify(item.supportedDevices)]], {origin: `AG${rowNumber}`});
-=======
       XLSX.utils.sheet_add_aoa(ws2, [[item.supportedDevices.toString()]], {origin: `AG${rowNumber}`});
->>>>>>> b2d060ed21648c709aad925629b3cf619840535f
       // XLSX.utils.sheet_add_aoa(ws2, [[item.screenshots.toString()]], {origin: `AH${rowNumber}`});
       // XLSX.utils.sheet_add_aoa(ws2, [[item.ipadScreenshots]], {origin: `AI${rowNumber}`});
       // XLSX.utils.sheet_add_aoa(ws2, [[item.appletvScreenshots]], {origin: `AJ${rowNumber}`});                           

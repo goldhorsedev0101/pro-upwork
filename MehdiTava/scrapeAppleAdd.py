@@ -58,14 +58,9 @@ for idx,appLink in enumerate(workAppLinks):
 
   # read ranknumber / rankcategory
   tries = 0
-<<<<<<< HEAD
   while tries < 1000:    
+    # print(f"DEBUG Link: {link}")
 
-    print(f"DEBUG Link: {link}")
-
-=======
-  while tries < 100:    
->>>>>>> b2d060ed21648c709aad925629b3cf619840535f
     driver.get (link)
     soup = BeautifulSoup (driver.page_source, 'html.parser')
 
@@ -167,7 +162,10 @@ for idx,appLink in enumerate(workAppLinks):
     for idx,elem in enumerate(ergList):
       if "$" not in elem:
         continue
-      tmpPrice = float(elem.split("\n")[1].replace("$","".strip()))
+      if "\n" in elem:
+        tmpPrice = float(elem.split("\n")[1].replace("$","".strip()))
+      else:
+        tmpPrice = float(elem.replace("$","".strip()))
       if tmpPrice < minPrice:
         minPrice = tmpPrice
       if tmpPrice > maxPrice:
