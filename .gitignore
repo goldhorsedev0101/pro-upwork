@@ -3,3 +3,5 @@ chromedriver.exe
 *.csv
 *.exe
 node_modules
+*-macos
+*-linux
