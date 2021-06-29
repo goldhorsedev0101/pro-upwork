@@ -24,10 +24,10 @@ see FAQ: https://www.rapidtech1898.com/htmlFinanztools/faqFinanceTools.html#8
 PARAMETERS ScrapeAppStore.xlsx / ScrapeGoogleStore.xlsx
 In the parameters workhsheet starting with row 4 you can enter collection / category combinatons you want to scrape
 Or you enter collections and categories in the corresponding worksheets (Collection, Category) and all possible combinations will be build automatically
-Cell B1: if "y" or "yes" all combinations will be build for the worksheets collection and category - otherwise only the combinatons from the worksheet parameters starting
+Cell B1: if "y" or "yes" all combinations will be build for the worksheets collection and category (from worksheets "Collection" and "Category") - otherwise only the combinatons from the worksheet "parameters" starting
 from row 4 will be taken for scraping
-
-
+Cell D1: set the starting row for the working (if no value, working starts with row 2)
+Cell F1, set the number of seconds for waiting between the tickers (if no value default 3 seconds will taken)
 
 
 Common FAQ - https://www.rapidtech1898.com/htmlFinanztools/en/faqFinanceToolsEN.html
