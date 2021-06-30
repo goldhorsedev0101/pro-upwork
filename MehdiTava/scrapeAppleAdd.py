@@ -58,7 +58,7 @@ for idx,appLink in enumerate(workAppLinks):
 
   # read ranknumber / rankcategory
   tries = 0
-  while tries < 1000:    
+  while tries < 30:    
     # print(f"DEBUG Link: {link}")
 
     driver.get (link)
@@ -81,7 +81,7 @@ for idx,appLink in enumerate(workAppLinks):
   if not erg:
       idxStock += 1
       driver.quit()
-      print (f"Acess to {appLink} in row {idxStock} not possible - skipped...")      
+      print (f"Access to {appLink} in row {idxStock-1} not possible - skipped...")      
       continue
 
   erg2 = erg.find_all("li")
