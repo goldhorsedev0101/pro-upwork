@@ -1,8 +1,4 @@
 # -*- mode: python ; coding: utf-8 -*-
-from PyInstaller.utils.hooks import copy_metadata
-
-datas = []
-datas += copy_metadata('pandas_ta')
 
 
 block_cipher = None
@@ -11,11 +7,11 @@ block_cipher = None
 a = Analysis(['scrapeAppleAdd.py'],
              pathex=['C:\\Users\\Polzi\\Documents\\DEV\\Upwork\\MehdiTava'],
              binaries=[],
-             datas=datas,
+             datas=[],
              hiddenimports=[],
              hookspath=[],
              runtime_hooks=[],
-             excludes=[],
+             excludes=['matplotlib'],
              win_no_prefer_redirects=False,
              win_private_assemblies=False,
              cipher=block_cipher,

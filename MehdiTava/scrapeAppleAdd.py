@@ -1,3 +1,5 @@
+# pyinstaller --onefile --exclude-module matplotlib scrapeAppleAdd.py
+
 import requests
 from bs4 import BeautifulSoup
 from selenium import webdriver
@@ -27,9 +29,18 @@ workAppLinks = [x for x in workAppLinks if x != None]
 if ws2["D1"].value != None:
     startRow = int(ws2["D1"].value)   
 if ws2["F1"].value != None:
-    WAIT = ws2["F1"].value
+    WAIT = int(ws2["F1"].value)
 
 idxStock = 2
+
+options = Options()
+options.add_argument('--headless')
+options.add_experimental_option ('excludeSwitches', ['enable-logging'])
+path = os.path.abspath (os.path.dirname (sys.argv[0]))
+if sys.platform == "win32": cd = '/chromedriver.exe'
+elif sys.platform == "linux": cd = '/chromedriver'
+elif sys.platform == "darwin": cd = '/chromedriver'
+driver = webdriver.Chrome (path + cd, options=options)
 
 for idx,appLink in enumerate(workAppLinks):
   if idxStock < startRow:
@@ -38,15 +49,6 @@ for idx,appLink in enumerate(workAppLinks):
   if ws["F" + str (idxStock)].value != appLink:
     print(f"Error - work stopped - working app-link \n{appLink}\n is not ident with value in F{idxStock}\n{ws['F' + str (idxStock)].value}")
     break
-
-  options = Options()
-  options.add_argument('--headless')
-  options.add_experimental_option ('excludeSwitches', ['enable-logging'])
-  path = os.path.abspath (os.path.dirname (sys.argv[0]))
-  if sys.platform == "win32": cd = '/chromedriver.exe'
-  elif sys.platform == "linux": cd = '/chromedriver'
-  elif sys.platform == "darwin": cd = '/chromedriver'
-  driver = webdriver.Chrome (path + cd, options=options)
 
   # appLink = appLink.split("?")[0]
   print (f"Working on {appLink} in row {idxStock}...")
@@ -58,7 +60,7 @@ for idx,appLink in enumerate(workAppLinks):
 
   # read ranknumber / rankcategory
   tries = 0
-  while tries < 30:    
+  while tries < 10:    
     # print(f"DEBUG Link: {link}")
 
     driver.get (link)
@@ -80,7 +82,7 @@ for idx,appLink in enumerate(workAppLinks):
 
   if not erg:
       idxStock += 1
-      driver.quit()
+      # driver.quit()
       print (f"Access to {appLink} in row {idxStock-1} not possible - skipped...")      
       continue
 
@@ -145,7 +147,7 @@ for idx,appLink in enumerate(workAppLinks):
     time.sleep (WAIT)
     soup = BeautifulSoup (driver.page_source, 'html.parser')  # Read page with html.parser
     time.sleep (WAIT)
-    driver.quit ()
+    # driver.quit ()
     # page = requests.get (link)
     # soup = BeautifulSoup (page.content, "html.parser")
 
@@ -187,7 +189,7 @@ for idx,appLink in enumerate(workAppLinks):
   if idxStock % SAVE_INTERVAL == 0:
     wb.save (fn)
     print ("Saved to disk...")
-  driver.quit()
+  # driver.quit()
 
 wb.save (fn)
 print ("Saved to disk...")
