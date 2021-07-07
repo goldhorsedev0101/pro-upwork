@@ -5,7 +5,7 @@ block_cipher = None
 
 
 a = Analysis(['scrapeAppleAdd.py'],
-             pathex=['C:\\Users\\Polzi\\Documents\\DEV\\Upwork\\MehdiTava'],
+             pathex=['C:\\Users\\WRSPOL\\Documents\\Files\\DEV\\Upwork\\MehdiTava'],
              binaries=[],
              datas=[],
              hiddenimports=[],

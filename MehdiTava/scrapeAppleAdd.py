@@ -21,8 +21,8 @@ wb = xw.Book (fn)
 ws = wb.sheets["Apps"] 
 ws2 = wb.sheets["Parameters"] 
 # read stocks for working on
-maxRow = 10000
-workAppLinks = ws.range ("F2:F10000").value
+maxRow = 100000
+workAppLinks = ws.range ("F2:F100000").value
 workAppLinks = [x for x in workAppLinks if x != None]
 
 #read parameters
