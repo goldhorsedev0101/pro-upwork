@@ -21,8 +21,8 @@ wb = xw.Book (fn)
 ws = wb.sheets["Apps"] 
 ws2 = wb.sheets["Parameters"] 
 # read stocks for working on
-maxRow = 10000
-workAppLinks = ws.range ("F2:F10000").value
+maxRow = 100000
+workAppLinks = ws.range ("F2:F100000").value
 workAppLinks = [x for x in workAppLinks if x != None]
 
 #read parameters
@@ -34,8 +34,11 @@ if ws2["F1"].value != None:
 idxStock = 2
 
 options = Options()
+options.add_argument("--window-size=1920x1080")
+options.add_argument('--no-sandbox')
+options.add_argument('--disable-gpu')   
+options.add_experimental_option ('excludeSwitches', ['enable-logging'])      
 options.add_argument('--headless')
-options.add_experimental_option ('excludeSwitches', ['enable-logging'])
 path = os.path.abspath (os.path.dirname (sys.argv[0]))
 if sys.platform == "win32": cd = '/chromedriver.exe'
 elif sys.platform == "linux": cd = '/chromedriver'
@@ -62,16 +65,16 @@ for idx,appLink in enumerate(workAppLinks):
   tries = 0
   while tries < 10:    
     # print(f"DEBUG Link: {link}")
-
     driver.get (link)
+
+    # try to click on more for in-app purchases
+    try:
+        time.sleep(WAIT)
+        driver.find_element_by_xpath('//*[@id="ember-app"]/div/main/div[2]/section[7]/div[1]/dl/div[9]/dd/ol/div/button').click()
+    except:
+      pass
+
     soup = BeautifulSoup (driver.page_source, 'html.parser')
-
-    # page = requests.get (link)
-    # soup = BeautifulSoup (page.content, "html.parser")
-
-    # print(soup)
-    # print(len(soup))
-    # exit()
 
     erg = soup.find("header")
     if erg:
@@ -121,35 +124,6 @@ for idx,appLink in enumerate(workAppLinks):
   # read In-App-Purchases
   if inAppPurchase == True:
     ws["V" + str (idxStock)].value = "YES"
-
-    # options = Options()
-    # options.add_argument('--headless')
-    # options.add_experimental_option ('excludeSwitches', ['enable-logging'])
-    # path = os.path.abspath (os.path.dirname (sys.argv[0]))
-    # if sys.platform == "win32": cd = '/chromedriver.exe'
-    # elif sys.platform == "linux": cd = '/chromedriver'
-    # elif sys.platform == "darwin": cd = '/chromedriver'
-    # driver = webdriver.Chrome (path + cd, options=options)
-    # driver.get (link)
-    # time.sleep (WAIT)
-
-    # WebDriverWait wait = new WebDriverWait(driver, waitTime);
-    # wait.until(ExpectedConditions.elementToBeClickable(locator));
-    # WebDriverWait(driver, 20).until(EC.element_to_be_clickable((By.XPATH, '//*[@id="ember140"]/div/section[7]/div[1]/dl/div[9]/dd/ol/div/button'))).click() 
-    try:
-      driver.find_element_by_xpath ('/html/body/div[4]/div/main/div[2]/div/section[7]/div[1]/dl/div[9]/dd/ol/div/button').click ()
-    except:
-      # idxStock += 1
-      # print("No In-App Purchase Info found - skipped...")
-      # continue
-      pass
-    # driver.find_element_by_xpath ('//*[@id="ember140"]/div/section[7]/div[1]/dl/div[9]/dd/ol/div/button').click ()
-    time.sleep (WAIT)
-    soup = BeautifulSoup (driver.page_source, 'html.parser')  # Read page with html.parser
-    time.sleep (WAIT)
-    # driver.quit ()
-    # page = requests.get (link)
-    # soup = BeautifulSoup (page.content, "html.parser")
 
     erg = soup.find("dt", string="In-App Purchases")
     erg2 = erg.find_parent("div")
