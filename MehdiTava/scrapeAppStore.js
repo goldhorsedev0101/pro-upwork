@@ -82,7 +82,6 @@ async function getStoreCollection(coll,cat) {
     return false
   }
   // console.log(result.length)
-
 }
 
 async function main () {
