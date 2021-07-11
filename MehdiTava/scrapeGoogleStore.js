@@ -2,6 +2,7 @@ const store = require('google-play-scraper');
 const XLSX = require('xlsx');
 const FN = "ScrapeGoogleStore.xlsx"
 const READ_AMOUNT = 200
+const READ_THROTTLE = 7
 
 // read file
 let wb = XLSX.readFile(FN)
@@ -19,6 +20,13 @@ let overwrite = false
 if (ws[`D1`] && ["YES","Y"].includes(ws[`D1`].v.toUpperCase())) {
   overwrite = true
 }
+let fullContent = false
+if (ws[`F1`] && ["YES","Y"].includes(ws[`F1`].v.toUpperCase())) {
+  fullContent = true
+}
+
+
+
 
 let maxRow = 200000
 let arrColl = []
@@ -90,6 +98,7 @@ async function getStoreCollection(coll,cat) {
       collection: store.collection[coll],
       category: store.category[cat],
       num: READ_AMOUNT,
+      throttle: READ_THROTTLE,
       fullDetail: true
     })
     return result    
@@ -104,6 +113,7 @@ async function getStoreCollection(coll,cat) {
 async function main () {
   // let rowNumber = 2
   let arrWorkedOn = []
+  let checkIteration = 0
   for (i=0; i<arrColl.length; i++) {  
     console.log(`Working on Collection ${arrColl[i]} and Category ${arrCat[i]}...`) 
 
@@ -121,7 +131,13 @@ async function main () {
 
     if (erg === false || erg === undefined) {
       console.log(`Working with this pair not possible - retry...`)
-      i--
+      if (checkIteration < 5) {
+        i--
+        checkIteration++
+      }
+      else {
+        checkIteration = 0
+      }
       continue
     } else {           
       // console.log(`DEBUG Erg: ${erg}`)
@@ -193,12 +209,12 @@ async function main () {
           XLSX.utils.sheet_add_aoa(ws2, [[item.appId]], {origin: `AW${rowNumber}`});
           XLSX.utils.sheet_add_aoa(ws2, [[item.url]], {origin: `AX${rowNumber}`});
 
-
-          // XLSX.utils.sheet_add_aoa(ws2, [[item.description]], {origin: `D${rowNumber}`});
-          // XLSX.utils.sheet_add_aoa(ws2, [[item.descriptionHTML]], {origin: `E${rowNumber}`});   
-          // XLSX.utils.sheet_add_aoa(ws2, [[item.screenshots.toString()]], {origin: `AK${rowNumber}`});    
-          // XLSX.utils.sheet_add_aoa(ws2, [[item.comments.toString()]], {origin: `AU${rowNumber}`});   
-
+          if (fullContent) {
+            XLSX.utils.sheet_add_aoa(ws2, [[item.description]], {origin: `D${rowNumber}`});
+            XLSX.utils.sheet_add_aoa(ws2, [[item.descriptionHTML]], {origin: `E${rowNumber}`});   
+            XLSX.utils.sheet_add_aoa(ws2, [[item.screenshots.toString()]], {origin: `AK${rowNumber}`});    
+            XLSX.utils.sheet_add_aoa(ws2, [[item.comments.toString()]], {origin: `AU${rowNumber}`});   
+          }
           
           // console.log(`${item.appId} ${item.title} prepared for XLSX...`)
           arrWorkedOn.push(item.appId)
@@ -207,7 +223,7 @@ async function main () {
       // process.exit(1)      
       })
     }
-    XLSX.writeFile(wb, FN);                            
+    XLSX.writeFile(wb, FN);       
   }
 }
 
