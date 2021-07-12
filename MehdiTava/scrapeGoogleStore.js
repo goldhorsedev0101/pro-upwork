@@ -20,13 +20,13 @@ let overwrite = false
 if (ws[`D1`] && ["YES","Y"].includes(ws[`D1`].v.toUpperCase())) {
   overwrite = true
 }
-let fullContent = false
-if (ws[`F1`] && ["YES","Y"].includes(ws[`F1`].v.toUpperCase())) {
-  fullContent = true
-}
-
-
-
+// let fullContent = false
+// if (ws[`F1`] && ["YES","Y"].includes(ws[`F1`].v.toUpperCase())) {
+//   fullContent = true
+// }
+// console.log(`ReadAll: ${readAll}`)
+// console.log(`Overwrite: ${overwrite}`)
+// console.log(`FullContent: ${fullContent}`)
 
 let maxRow = 200000
 let arrColl = []
@@ -209,12 +209,10 @@ async function main () {
           XLSX.utils.sheet_add_aoa(ws2, [[item.appId]], {origin: `AW${rowNumber}`});
           XLSX.utils.sheet_add_aoa(ws2, [[item.url]], {origin: `AX${rowNumber}`});
 
-          if (fullContent) {
-            XLSX.utils.sheet_add_aoa(ws2, [[item.description]], {origin: `D${rowNumber}`});
-            XLSX.utils.sheet_add_aoa(ws2, [[item.descriptionHTML]], {origin: `E${rowNumber}`});   
-            XLSX.utils.sheet_add_aoa(ws2, [[item.screenshots.toString()]], {origin: `AK${rowNumber}`});    
-            XLSX.utils.sheet_add_aoa(ws2, [[item.comments.toString()]], {origin: `AU${rowNumber}`});   
-          }
+          XLSX.utils.sheet_add_aoa(ws2, [[item.description]], {origin: `D${rowNumber}`});
+          // XLSX.utils.sheet_add_aoa(ws2, [[item.descriptionHTML]], {origin: `E${rowNumber}`});   
+          // XLSX.utils.sheet_add_aoa(ws2, [[item.screenshots.toString()]], {origin: `AK${rowNumber}`});    
+          // XLSX.utils.sheet_add_aoa(ws2, [[item.comments.toString()]], {origin: `AU${rowNumber}`});   
           
           // console.log(`${item.appId} ${item.title} prepared for XLSX...`)
           arrWorkedOn.push(item.appId)

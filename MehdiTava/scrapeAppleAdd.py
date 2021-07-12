@@ -11,6 +11,11 @@ import time
 import sys, os
 import xlwings as xw
 
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support import expected_conditions as EC
+
+
 SAVE_INTERVAL = 5
 WAIT = 3
 startRow = 2
@@ -70,7 +75,12 @@ for idx,appLink in enumerate(workAppLinks):
     # try to click on more for in-app purchases
     try:
         time.sleep(WAIT)
-        driver.find_element_by_xpath('//*[@id="ember-app"]/div/main/div[2]/section[7]/div[1]/dl/div[9]/dd/ol/div/button').click()
+        # driver.find_element_by_xpath('//*[@id="ember-app"]/div/main/div[2]/section[7]/div[1]/dl/div[9]/dd/ol/div/button').click()
+        # driver.find_element_by_xpath('//*[@id="ember-app"]/div/main/div[2]/section[9]/div[1]/dl/div[9]/dd/ol/div/button').click()
+
+        wait = WebDriverWait(driver, 10)
+        in_app_more_button = wait.until(EC.element_to_be_clickable((By.XPATH, "//dt[text()='In-App Purchases']/following-sibling::dd/descendant::button")))
+        in_app_more_button.click() 
     except:
       pass
 
