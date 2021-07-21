@@ -12,6 +12,7 @@ import sys, os
 import xlwings as xw
 import re
 from fake_useragent import UserAgent
+from datetime import datetime, timedelta
 
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.by import By
@@ -19,9 +20,8 @@ from selenium.webdriver.support import expected_conditions as EC
 
 
 SAVE_INTERVAL = 5
-WAIT = 10
+WAIT = 1
 COOLDOWN = 60
-startRow = 2
 FN = "ScrapeSensorTower.xlsx"
 path = os.path.abspath(os.path.dirname(sys.argv[0]))
 fn = path + "/" + FN
@@ -38,9 +38,11 @@ if ws2["B1"].value != None:
   WAIT = int(ws2["B1"].value)
 
 if ws2["B2"].value not in ["",None] and ws2["B2"].value.upper() == "GOOGLE":
-  STORE = "GOOGLE"
+  STORE1 = "android"
+  STORE2 = "mobile"
 elif ws2["B2"].value not in ["",None] and ws2["B2"].value.upper() == "APPLE":
-  STORE = "APPLE"
+  STORE1 = "ios"
+  STORE2 = "iphone"
 else:
   print(f"Pls provde valid Apple/Google parameter in B2... - program ended...")
   exit()
@@ -56,7 +58,14 @@ if ws2["B4"].value not in ["",None] and ws2["B2"].value.upper() == "ALL":
 else:
   CATEGORY = "SELECT"
 
-idxStock = 2
+if ws2["B5"].value not in ["",None] and ws2["B5"].value.upper() in ["YES","Y"]:
+  OVERWRITE = True
+else:
+  OVERWRITE = False
+
+existLinks = ws.range ("B2:B100000").value
+existLinks = [x for x in existLinks if x != None]
+nextFreeRow = len(existLinks) + 2
 
 options = Options()
 options.add_argument("--window-size=1920x800")
@@ -74,8 +83,14 @@ elif sys.platform == "linux": cd = '/chromedriver'
 elif sys.platform == "darwin": cd = '/chromedriver'
 driver = webdriver.Chrome (path + cd, options=options)
 
+# https://sensortower.com/ios/rankings/top/iphone/us/games
+# https://sensortower.com/ios/rankings/top/iphone/us/games?date=
+# https://sensortower.com/android/rankings/top/mobile/us/game?date=2021-07-21
 
-link = "https://sensortower.com/ios/rankings/top/iphone/us/games?date=2021-07-12"
+
+# tday = datetime.today().date()	
+link = f"https://sensortower.com/{STORE1}/rankings/top/{STORE2}/{COUNTRY}/games"
+
 driver.get(link)
 time.sleep(WAIT)
 driver.set_window_size(600,1000)
@@ -127,10 +142,21 @@ for idx,elem in enumerate(tmpLinks):
   # print(tmpElem)
 
   # elem = "https://sensortower.com/ios/us/disney/app/espn-live-sports-scores/317469184/overview"
+  # elem = "https://sensortower.com/ios/us/magiclab/app/fidget-trading-3d/1574888366"
 
 
   print(f"Working on element {idx+1} with link {elem}...")
   
+  if elem in existLinks:
+    if OVERWRITE:
+      rowIDX = existLinks.index(elem) + 2
+    else:
+      print(f"No overwrite mode - link allready in excel - skipped...")
+      continue
+  else:
+    rowIDX = nextFreeRow
+    nextFreeRow += 1
+
   while True:
     ua = UserAgent()
     userAgent = ua.random
@@ -159,17 +185,62 @@ for idx,elem in enumerate(tmpLinks):
     i = i.text.strip()
     if len(i) > 0 and "\n" not in i and i not in listMetaHeader:
       listMetaHeader.append(i)    
+  appMetaName = listMetaHeader[0]
+  if "Category" in listMetaHeader:
+    appMetaCat = listMetaHeader[listMetaHeader.index("Category")]
+  else:
+    appMetaCat = "N/A"
+  if "IAP?" in listMetaHeader:
+    appMetaIAP = listMetaHeader[listMetaHeader.index("IAP?")]
+  else:
+    appMetaIAP = "N/A"
+  if "Price" in listMetaHeader:
+    appMetaPrice = listMetaHeader[listMetaHeader.index("Price")]
+  else:
+    appMetaPrice = "N/A"
+  if "Publisher" in listMetaHeader:
+    appMetaPublisher = listMetaHeader[listMetaHeader.index("Publisher")]
+  else:
+    appMetaPublisher = "N/A"
+  if "View in Store" in listMetaHeader:
+    appMetaStore = listMetaHeader[listMetaHeader.index("View in Store")]
+  else:
+    appMetaStore = "N/A"
+  if "Country / Region" in listMetaHeader:
+    appMetaCountry = listMetaHeader[listMetaHeader.index("Country / Region")]
+  else:
+    appMetaCountry = "N/A"
 
-  r = requests.get(elem).text
-  try:
-    appDownloads = re.findall(r'"downloads":"([^"]*)"', r)[0].strip()
-    appDownloads = str(appDownloads).replace("\u003c","<")
-  except:
+  tmpRevDownlDIV = soup.find(id="app-revenue-downloads")
+  tmpElem = tmpRevDownlDIV.findAll(["span","h3"])
+  listRevDownl= []
+  for i in tmpElem:
+    i = i.text.strip()
+    if "Worldwide" not in i:
+      listRevDownl.append(i)
+  if "Downloads" in listRevDownl:
+    appDownloads = listRevDownl[listRevDownl.index("Downloads")]
+  else:
     appDownloads = "N/A"
-  try:
-    appRevenue = re.findall(r'"revenue":"([^"]*)"', r)[0].strip()
-  except:
+  if "Revenue" in listRevDownl:
+    appRevenue = listRevDownl[listRevDownl.index("Revenue")]
+  else:
     appRevenue = "N/A"
+
+  # r = requests.get(elem).text
+  # try:
+  #   appDownloads = re.findall(r'"downloads":"([^"]*)"', r)[0].strip()
+  #   # print(appDownloads)
+  #   # print(type(appDownloads))
+  #   appDownloads = appDownloads.replace("\u003c","<")
+  #   # print(appDownloads)
+  #   # print(type(appDownloads))
+  # except:
+  #   appDownloads = "N/A"
+  # try:
+  #   appRevenue = re.findall(r'"revenue":"([^"]*)"', r)[0].strip()
+  # except:
+  #   appRevenue = "N/A"
 
   tmpElem = soup.find("div", {"class": "visibility-score-body"})
   if tmpElem != None:
@@ -184,12 +255,20 @@ for idx,elem in enumerate(tmpLinks):
     tmpElem = tmpRatingDIV.findAll("span", {"class": "rating-count"})
     for i in tmpElem:
       listRating.append(i.text.strip())
+    appRating1 = listRating[0]
+    appRating2 = listRating[1]
+    appRating3 = listRating[2]
+    appRating4 = listRating[3]
+    appRating5 = listRating[4]
 
     tmpElem = tmpRatingDIV.find("div", {"class": "current-and-overall-rating-count-container"})
     tmpElem = tmpElem.findAll("span")  
     for i in tmpElem:
       if len(i.text.strip()) > 0:
         listSumRating.append(i.text.strip())
+    appRatingCount = listSumRating[1]
+  else:
+    appRating1 = appRating2 = appRating3 = appRating4 = appRating5 = appRatingCount = "N/A"
 
   tmpVersionDIV = soup.find(id="app-versions")
   tmpElem = tmpVersionDIV.findAll("td")
@@ -203,9 +282,25 @@ for idx,elem in enumerate(tmpLinks):
   tmpElem = tmpAboutDIV.findAll("td")
   listAbout = []
   for i in tmpElem:
-    i = i.text.strip()
+    i = i.text.strip().replace(":","")
     if len(i) > 1:
       listAbout.append(i)
+  if "Support URL" in listAbout:
+    appSupport = listAbout[listAbout.index("Support URL")]
+  else:
+    appSupport = "N/A"
+  if "Categories" in listAbout:
+    appCategories = listAbout[listAbout.index("Categories")].replace("\n\n\n\n"," ")
+  else:
+    appCategories = "N/A"
+  if "Developer Website" in listAbout:
+    appDeveloperSite = listAbout[listAbout.index("Developer Website")]
+  else:
+    appDeveloperSite = "N/A"
+  if "Developer Website" in listAbout:
+    appDeveloperSite = listAbout[listAbout.index("Developer Website")]
+  else:
+    appDeveloperSite = "N/A"
 
   tmpInAppPurchasesDIV = soup.find(id="top-in-app-purchases")
   tmpElem = tmpInAppPurchasesDIV.findAll("td")
@@ -215,24 +310,32 @@ for idx,elem in enumerate(tmpLinks):
     if len(i) > 1:
       listInAppPurchases.append(i)
 
-  # print(appCategory)
-  # print(appIAP)
-  # print(appPrice)
-  # print(appPublisher)
-  # print(appStore)
-  # print(appCountry)  
-  print(listMetaHeader)
-  print(appDownloads)
-  print(appRevenue)   
-  print(appVisibScore) 
-  print(listRating)
-  print(listSumRating)
-  print(listVersions)
-  print(listAbout)
-  print(listInAppPurchases)
-  print(userAgent)
-  print(elem)
-  print("\n")
+  # print(listMetaHeader)
+  # print(listRevDownl)
+  # print(appVisibScore) 
+  # print(listRating)
+  # print(listSumRating)
+  # print(listVersions)
+  # print(listAbout)
+  # print(listInAppPurchases)
+  # print(userAgent)
+  # print(elem)
+  # print("\n")
+
+  ws["A" + str (rowIDX)].value = datetime.today () 
+  ws["B" + str (rowIDX)].value = elem
+  ws["C" + str (rowIDX)].value = str(listMetaHeader)
+  ws["D" + str (rowIDX)].value = str(listRevDownl)
+  ws["E" + str (rowIDX)].value = appVisibScore
+  ws["F" + str (rowIDX)].value = str(listRating)
+  ws["G" + str (rowIDX)].value = appRatingCount
+  ws["H" + str (rowIDX)].value = str(listVersions)
+  ws["I" + str (rowIDX)].value = str(listAbout)
+  ws["J" + str (rowIDX)].value = str(listInAppPurchases)
+
+  if idx % SAVE_INTERVAL == 0:
+    wb.save (fn)
+    print ("Saved to disk...")
 
   driver.quit()
 
