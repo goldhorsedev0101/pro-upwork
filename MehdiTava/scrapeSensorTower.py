@@ -30,6 +30,7 @@ ws = wb.sheets["Apps"]
 ws2 = wb.sheets["Parameters"] 
 ws3 = wb.sheets["Apple Categories"] 
 ws4 = wb.sheets["Google Categories"] 
+ws5 = wb.sheets["AppsDetails"] 
 
 #read parameters
 if ws2["B1"].value != None:
@@ -72,7 +73,7 @@ if ws2["B6"].value not in ["",None] and ws2["B6"].value.upper() in ["YES","Y"]:
 else:
   OVERWRITE = False
 
-existLinks = ws.range ("B2:B100000").value
+existLinks = ws5.range ("B2:B100000").value
 existLinks = [x for x in existLinks if x != None]
 nextFreeRow = len(existLinks) + 2
 
@@ -104,11 +105,17 @@ for idxCat, elemCat in enumerate(workCategories):
   driver.set_window_size(600,1000)
   wait = WebDriverWait(driver, 10)
 
-  tmpElem = wait.until(EC.element_to_be_clickable((By.XPATH, "//button[@id='onetrust-accept-btn-handler']")))
-  tmpElem.click() 
+  try:
+    tmpElem = wait.until(EC.element_to_be_clickable((By.XPATH, "//button[@id='onetrust-accept-btn-handler']")))
+    tmpElem.click() 
+  except:
+    pass
 
-  tmpElem = wait.until(EC.element_to_be_clickable((By.XPATH, "//span[text()='Top Grossing']")))
-  driver.execute_script('arguments[0].click();', tmpElem)
+  try:
+    tmpElem = wait.until(EC.element_to_be_clickable((By.XPATH, "//span[text()='Top Grossing']")))
+    driver.execute_script('arguments[0].click();', tmpElem)
+  except:
+    pass
 
   # tmpElem = wait.until(EC.element_to_be_clickable((By.XPATH, "//button[text()='Top Grossing']")))
   # tmpElem.click() 
@@ -155,6 +162,7 @@ for idxCat, elemCat in enumerate(workCategories):
 
     print(f"Working on element nr {idx+1} from {len(tmpLinks)} in row {rowIDX} with link {elem}...")    
 
+    tryCooldowns = 0
     while True:
       ua = UserAgent()
       userAgent = ua.random
@@ -176,7 +184,10 @@ for idxCat, elemCat in enumerate(workCategories):
             sys.stdout.flush ()
             time.sleep (1)
             if i == 1:
-                print("\n")        
+                print("\n")      
+      tryCooldowns += 1     
+      if tryCooldowns == 3:
+        print(f"Tried for 10times - without result - continue program with next element...")             
 
     tmpElem = tmpElem.findAll("span")
     listMetaHeader = []
@@ -226,21 +237,6 @@ for idxCat, elemCat in enumerate(workCategories):
     else:
       appRevenue = "N/A"
 
-    # r = requests.get(elem).text
-    # try:
-    #   appDownloads = re.findall(r'"downloads":"([^"]*)"', r)[0].strip()
-    #   # print(appDownloads)
-    #   # print(type(appDownloads))
-    #   appDownloads = appDownloads.replace("\u003c","<")
-    #   # print(appDownloads)
-    #   # print(type(appDownloads))
-    # except:
-    #   appDownloads = "N/A"
-    # try:
-    #   appRevenue = re.findall(r'"revenue":"([^"]*)"', r)[0].strip()
-    # except:
-    #   appRevenue = "N/A"
-
     tmpElem = soup.find("div", {"class": "visibility-score-body"})
     if tmpElem != None:
       appVisibScore = tmpElem.text.strip()
@@ -254,6 +250,7 @@ for idxCat, elemCat in enumerate(workCategories):
       tmpElem = tmpRatingDIV.findAll("span", {"class": "rating-count"})
       for i in tmpElem:
         listRating.append(i.text.strip())
+      listRating = [int(x.replace(",","")) for x in listRating]
       appRating1 = listRating[0]
       appRating2 = listRating[1]
       appRating3 = listRating[2]
@@ -329,16 +326,82 @@ for idxCat, elemCat in enumerate(workCategories):
     # print(elem)
     # print("\n")
 
-    ws["A" + str (rowIDX)].value = datetime.today () 
-    ws["B" + str (rowIDX)].value = elem
-    ws["C" + str (rowIDX)].value = str(listMetaHeader)
-    ws["D" + str (rowIDX)].value = str(listRevDownl)
-    ws["E" + str (rowIDX)].value = appVisibScore
-    ws["F" + str (rowIDX)].value = str(listRating)
-    ws["G" + str (rowIDX)].value = appRatingCount
-    ws["H" + str (rowIDX)].value = str(listVersions)
-    ws["I" + str (rowIDX)].value = str(listAbout)
-    ws["J" + str (rowIDX)].value = str(listInAppPurchases)
+
+    def findElement (elemSearch, listSearch):
+      if elemSearch in listSearch:
+        idxSearch = listSearch.index(elemSearch)
+        if elemSearch == "Downloads" and listSearch[idxSearch + 1] == "Most Popular Country":
+          return "N/A"
+        if idxSearch + 1 < len(listSearch):
+          return listSearch[idxSearch + 1]
+        else:
+          return "N/A"
+      else:
+        return "N/A"
+
+    ws5["A" + str (rowIDX)].value = datetime.today () 
+    ws5["B" + str (rowIDX)].value = elem
+    ws5["C" + str (rowIDX)].value = listMetaHeader[0]
+    ws5["D" + str (rowIDX)].value = findElement("Category",listMetaHeader)
+    ws5["E" + str (rowIDX)].value = findElement("IAP?",listMetaHeader)
+    ws5["F" + str (rowIDX)].value = findElement("Price",listMetaHeader)
+    ws5["G" + str (rowIDX)].value = findElement("Publisher",listMetaHeader)
+    ws5["H" + str (rowIDX)].value = findElement("View in Store",listMetaHeader)
+    ws5["I" + str (rowIDX)].value = findElement("Country / Region",listMetaHeader)
+    ws5["J" + str (rowIDX)].value = findElement("Downloads",listRevDownl)
+    ws5["K" + str (rowIDX)].value = findElement("Revenue",listRevDownl)
+    ws5["L" + str (rowIDX)].value = appVisibScore
+    ws5["M" + str (rowIDX)].value = appRatingCount
+    
+    
+    if sum(listRating) > 0:
+      ws5["N" + str (rowIDX)].value = \
+        round(
+        (listRating[0] * 1 +
+        listRating[1] * 2 +
+        listRating[2] * 3 +
+        listRating[3] * 4 +
+        listRating[4] * 5) / 
+        sum(listRating),2)   
+    else:
+      ws5["N" + str (rowIDX)].value = "N/A"
+    
+    ws5["O" + str (rowIDX)].value = listRating[0]
+    ws5["P" + str (rowIDX)].value = listRating[1]
+    ws5["Q" + str (rowIDX)].value = listRating[2]
+    ws5["R" + str (rowIDX)].value = listRating[3]
+    ws5["S" + str (rowIDX)].value = listRating[4]
+    ws5["T" + str (rowIDX)].value = findElement("Current Version",listAbout)
+    if len(listVersions) > 0:
+      ws5["U" + str (rowIDX)].value = len(listVersions)
+    else:
+      ws5["U" + str (rowIDX)].value = "N/A"
+    ws5["V" + str (rowIDX)].value = findElement("Support URL",listAbout)    
+    ws5["W" + str (rowIDX)].value = findElement("Categories",listAbout).replace("\n\n\n\n"," ")    
+    ws5["X" + str (rowIDX)].value = findElement("Developer Website",listAbout)    
+    ws5["Y" + str (rowIDX)].value = findElement("Country Release Date",listAbout)    
+    ws5["Z" + str (rowIDX)].value = findElement("Worldwide Release Date",listAbout)    
+    ws5["AA" + str (rowIDX)].value = findElement("Downloads",listAbout)    
+    ws5["AB" + str (rowIDX)].value = findElement("Most Popular Country",listAbout)    
+    ws5["AC" + str (rowIDX)].value = findElement("Last Updated",listAbout)    
+    ws5["AD" + str (rowIDX)].value = findElement("Current Version",listAbout)    
+    ws5["AE" + str (rowIDX)].value = findElement("Apple Watch",listAbout)    
+    ws5["AF" + str (rowIDX)].value = findElement("File Size",listAbout)    
+    ws5["AG" + str (rowIDX)].value = findElement("Contains Ads",listAbout)
+    ws5["AH" + str (rowIDX)].value = findElement("Publisher Country",listAbout)
+    ws5["AI" + str (rowIDX)].value = findElement("Minimum OS Version",listAbout)
+    ws5["AJ" + str (rowIDX)].value = findElement("Languages",listAbout)
+
+    # ws["A" + str (rowIDX)].value = datetime.today () 
+    # ws["B" + str (rowIDX)].value = elem
+    # ws["C" + str (rowIDX)].value = str(listMetaHeader)
+    # ws["D" + str (rowIDX)].value = str(listRevDownl)
+    # ws["E" + str (rowIDX)].value = appVisibScore
+    # ws["F" + str (rowIDX)].value = str(listRating)
+    # ws["G" + str (rowIDX)].value = appRatingCount
+    # ws["H" + str (rowIDX)].value = str(listVersions)
+    # ws["I" + str (rowIDX)].value = str(listAbout)
+    # ws["J" + str (rowIDX)].value = str(listInAppPurchases)
 
     if idx % SAVE_INTERVAL == 0:
       wb.save (fn)
