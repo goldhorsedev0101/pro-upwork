@@ -26,7 +26,7 @@ FN = "ScrapeSensorTower.xlsx"
 path = os.path.abspath(os.path.dirname(sys.argv[0]))
 fn = path + "/" + FN
 wb = xw.Book (fn)
-ws = wb.sheets["Apps"] 
+# ws = wb.sheets["Apps"] 
 ws2 = wb.sheets["Parameters"] 
 ws3 = wb.sheets["Apple Categories"] 
 ws4 = wb.sheets["Google Categories"] 
@@ -149,6 +149,8 @@ for idxCat, elemCat in enumerate(workCategories):
   # working on apps for one category and country
   for idx,elem in enumerate(tmpLinks): 
     # elem = "https://sensortower.com/android/us/intuit-inc/app/quickbooks-self-employed-mileage-tracker-and-taxes/com.intuit.qbse/overview"
+    # elem = "https://sensortower.com/ios/us/mento-apps-ltd/app/skincare-routine/1428570992"
+    # elem = "https://sensortower.com/ios/us/changdu-hk-technology-limited/app/manobook-fantasy-novel-stories/1436687796"
 
     if elem in existLinks:
       if OVERWRITE:
@@ -267,12 +269,15 @@ for idxCat, elemCat in enumerate(workCategories):
       appRating1 = appRating2 = appRating3 = appRating4 = appRating5 = appRatingCount = "N/A"
 
     tmpVersionDIV = soup.find(id="app-versions")
-    tmpElem = tmpVersionDIV.findAll("td")
-    listVersions = []
-    for i in tmpElem:
-      i = i.text.strip()
-      if len(i) > 1:
-        listVersions.append(i)
+    if tmpVersionDIV != None:
+      tmpElem = tmpVersionDIV.findAll("td")
+      listVersions = []
+      for i in tmpElem:
+        i = i.text.strip()
+        if len(i) > 1:
+          listVersions.append(i)
+    else:
+      listVersions = []
 
     tmpAboutDIV = soup.find(id="about-app")
     tmpElem = tmpAboutDIV.findAll("td")
@@ -300,19 +305,22 @@ for idxCat, elemCat in enumerate(workCategories):
 
 
     tmpInAppPurchasesDIV = soup.find(id="top-in-app-purchases")    
-    if STORE1 == "ios":
-      tmpElem = tmpInAppPurchasesDIV.findAll("td")
-      listInAppPurchases= []
-      for i in tmpElem:
-        i = i.text.strip()
-        if len(i) > 1:
-          listInAppPurchases.append(i)
+    if tmpInAppPurchasesDIV != None:
+      if STORE1 == "ios":
+        tmpElem = tmpInAppPurchasesDIV.findAll("td")
+        listInAppPurchases= []
+        for i in tmpElem:
+          i = i.text.strip()
+          if len(i) > 1:
+            listInAppPurchases.append(i)
+      else:
+        tmpElem = tmpInAppPurchasesDIV.findAll("span")
+        listInAppPurchases= []
+        for i in tmpElem:
+          i = i.text.strip()
+          listInAppPurchases.append(i)      
     else:
-      tmpElem = tmpInAppPurchasesDIV.findAll("span")
-      listInAppPurchases= []
-      for i in tmpElem:
-        i = i.text.strip()
-        listInAppPurchases.append(i)      
+      tmpInAppPurchasesDIV = []
 
     # print(listMetaHeader)
     # print(listRevDownl)
@@ -377,7 +385,8 @@ for idxCat, elemCat in enumerate(workCategories):
     else:
       ws5["U" + str (rowIDX)].value = "N/A"
     ws5["V" + str (rowIDX)].value = findElement("Support URL",listAbout)    
-    ws5["W" + str (rowIDX)].value = findElement("Categories",listAbout).replace("\n\n\n\n"," ")    
+
+    ws5["W" + str (rowIDX)].value = findElement("Categories",listAbout).replace("\n\n\n\n"," ").replace("\n\n\n"," ")
     ws5["X" + str (rowIDX)].value = findElement("Developer Website",listAbout)    
     ws5["Y" + str (rowIDX)].value = findElement("Country Release Date",listAbout)    
     ws5["Z" + str (rowIDX)].value = findElement("Worldwide Release Date",listAbout)    
