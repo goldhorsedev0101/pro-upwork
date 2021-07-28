@@ -99,7 +99,6 @@ for idxCat, elemCat in enumerate(workCategories):
   elif sys.platform == "darwin": cd = '/chromedriver'
   driver = webdriver.Chrome (path + cd, options=options)
 
-
   driver.get(link)
   time.sleep(WAIT)
   driver.set_window_size(600,1000)
@@ -119,6 +118,8 @@ for idxCat, elemCat in enumerate(workCategories):
 
   # tmpElem = wait.until(EC.element_to_be_clickable((By.XPATH, "//button[text()='Top Grossing']")))
   # tmpElem.click() 
+
+  time.sleep(5)
 
   lenOfPage = driver.execute_script("window.scrollTo(0, document.body.scrollHeight);var lenOfPage=document.body.scrollHeight;return lenOfPage;")
   match=False
@@ -145,6 +146,7 @@ for idxCat, elemCat in enumerate(workCategories):
     tmpLinks.append("https://sensortower.com" + tmpHREF)
   driver.quit()
 
+  print(f"Work for {len(tmpLinks)} elements...")
 
   # working on apps for one category and country
   for idx,elem in enumerate(tmpLinks): 
@@ -180,7 +182,7 @@ for idxCat, elemCat in enumerate(workCategories):
         break
       else:
         driver.quit()
-        print(f"No data for element - probably cooldown necessary......")
+        print(f"No data for element {elem} - probably cooldown necessary......")
         for i in range (COOLDOWN, 0, -1):  # Delay for 30 seconds - countdown in one row
             sys.stdout.write (str (i) + ' ')  # Countdown output
             sys.stdout.flush ()
@@ -264,7 +266,11 @@ for idxCat, elemCat in enumerate(workCategories):
       for i in tmpElem:
         if len(i.text.strip()) > 0:
           listSumRating.append(i.text.strip())
-      appRatingCount = listSumRating[1]
+      
+      if len(listSumRating) >= 2:
+        appRatingCount = listSumRating[1]
+      else:
+        appRatingCount = listSumRating[0]        
     else:
       appRating1 = appRating2 = appRating3 = appRating4 = appRating5 = appRatingCount = "N/A"
 
@@ -371,14 +377,22 @@ for idxCat, elemCat in enumerate(workCategories):
         listRating[3] * 4 +
         listRating[4] * 5) / 
         sum(listRating),2)   
+
+      ws5["O" + str (rowIDX)].value = listRating[0]
+      ws5["P" + str (rowIDX)].value = listRating[1]
+      ws5["Q" + str (rowIDX)].value = listRating[2]
+      ws5["R" + str (rowIDX)].value = listRating[3]
+      ws5["S" + str (rowIDX)].value = listRating[4]
     else:
       ws5["N" + str (rowIDX)].value = "N/A"
+      ws5["O" + str (rowIDX)].value = "N/A"
+      ws5["P" + str (rowIDX)].value = "N/A"
+      ws5["Q" + str (rowIDX)].value = "N/A"
+      ws5["R" + str (rowIDX)].value = "N/A"
+      ws5["S" + str (rowIDX)].value = "N/A"
     
-    ws5["O" + str (rowIDX)].value = listRating[0]
-    ws5["P" + str (rowIDX)].value = listRating[1]
-    ws5["Q" + str (rowIDX)].value = listRating[2]
-    ws5["R" + str (rowIDX)].value = listRating[3]
-    ws5["S" + str (rowIDX)].value = listRating[4]
+
+    
     ws5["T" + str (rowIDX)].value = findElement("Current Version",listAbout)
     if len(listVersions) > 0:
       ws5["U" + str (rowIDX)].value = len(listVersions)
