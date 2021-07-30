@@ -119,7 +119,7 @@ for idxCat, elemCat in enumerate(workCategories):
   # tmpElem = wait.until(EC.element_to_be_clickable((By.XPATH, "//button[text()='Top Grossing']")))
   # tmpElem.click() 
 
-  time.sleep(5)
+  time.sleep(15)
 
   lenOfPage = driver.execute_script("window.scrollTo(0, document.body.scrollHeight);var lenOfPage=document.body.scrollHeight;return lenOfPage;")
   match=False
@@ -327,6 +327,7 @@ for idxCat, elemCat in enumerate(workCategories):
           listInAppPurchases.append(i)      
     else:
       tmpInAppPurchasesDIV = []
+      listInAppPurchases = []
 
     # print(listMetaHeader)
     # print(listRevDownl)
@@ -390,9 +391,7 @@ for idxCat, elemCat in enumerate(workCategories):
       ws5["Q" + str (rowIDX)].value = "N/A"
       ws5["R" + str (rowIDX)].value = "N/A"
       ws5["S" + str (rowIDX)].value = "N/A"
-    
-
-    
+        
     ws5["T" + str (rowIDX)].value = findElement("Current Version",listAbout)
     if len(listVersions) > 0:
       ws5["U" + str (rowIDX)].value = len(listVersions)
@@ -414,6 +413,7 @@ for idxCat, elemCat in enumerate(workCategories):
     ws5["AH" + str (rowIDX)].value = findElement("Publisher Country",listAbout)
     ws5["AI" + str (rowIDX)].value = findElement("Minimum OS Version",listAbout)
     ws5["AJ" + str (rowIDX)].value = findElement("Languages",listAbout)
+    ws5["AK" + str (rowIDX)].value = str(listInAppPurchases)
 
     # ws["A" + str (rowIDX)].value = datetime.today () 
     # ws["B" + str (rowIDX)].value = elem
