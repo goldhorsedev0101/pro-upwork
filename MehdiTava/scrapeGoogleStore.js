@@ -221,7 +221,7 @@ async function main () {
       // process.exit(1)      
       })
     }
-    XLSX.writeFile(wb, FN);       
+    XLSX.writeFile(wb, FN, {compression: true});       
   }
 }
 

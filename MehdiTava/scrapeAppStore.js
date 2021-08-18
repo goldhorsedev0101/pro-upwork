@@ -2,6 +2,7 @@ const store = require('app-store-scraper');
 const XLSX = require('xlsx');
 const FN = "ScrapeAppStore.xlsx"
 const READ_AMOUNT = 200
+const writeOpts = {compression: true};
 
 // read file
 let wb = XLSX.readFile(FN)
@@ -97,7 +98,6 @@ async function main () {
       console.log(erg[0])
       console.log(Object.keys(erg[0]))
 
-
       for (entry in erg) {}
       erg.forEach(function (item,index) {    
         // check row-number to write data
@@ -151,7 +151,7 @@ async function main () {
         }
         
         // XLSX.utils.sheet_add_aoa(ws2, [[item.screenshots.toString()]], {origin: `AH${rowNumber}`});
-        // XLSX.utils.sheet_add_aoa(ws2, [[item.ipadScreenshots]], {origin: `AI${rowNumber}`});
+        // XLSX.utils.sheet_add_aoa(ws2, [[item.ipadScreenshots]], {origin: `AI${rowNumber}`}
         // XLSX.utils.sheet_add_aoa(ws2, [[item.appletvScreenshots]], {origin: `AJ${rowNumber}`});                           
         
         console.log(`${item.id} ${item.title} prepared for XLSX...`)
@@ -160,7 +160,8 @@ async function main () {
         // process.exit(1)      
       })
     }
-    XLSX.writeFile(wb, FN);                            
+
+    XLSX.writeFile(wb, FN, writeOpts);                            
   }
 }
 
