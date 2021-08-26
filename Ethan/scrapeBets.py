@@ -240,9 +240,102 @@ if __name__ == '__main__':
 
 
 
-  ### ladbrokes.com ###
+  ### ladbrokes.com I ###
+  # WAIT = 1
+  # link = "https://www.tab.com.au/racing/meetings/today/R"  
+  # print(f"Working for: {link}")
+
+  # options = Options()
+  # options.add_argument('--headless')
+  # options.add_experimental_option ('excludeSwitches', ['enable-logging'])
+  # options.add_argument("start-maximized")
+  # options.add_argument('window-size=1920x1080')								  
+  # options.add_argument('--no-sandbox')
+  # options.add_argument('--disable-gpu')  
+  # path = os.path.abspath (os.path.dirname (sys.argv[0]))
+  # if platform == "win32": cd = '/chromedriver.exe'
+  # elif platform == "linux": cd = '/chromedriver'
+  # elif platform == "darwin": cd = '/chromedriver'
+  # driver = webdriver.Chrome (path + cd, options=options)
+  # driver.get (link)
+  # time.sleep (WAIT)
+  # driver.find_element(By.XPATH, '//button[text()="Select"]').click()
+  # driver.get ("https://www.tab.com.au/")
+  # time.sleep (WAIT)
+  # driver.back()
+  # time.sleep (WAIT)    
+  # soup = BeautifulSoup (driver.page_source, 'html.parser')
+  # time.sleep (WAIT)
+  
+  # tmptrackList = []
+  # trackList = []
+  # tmpDIVs = soup.find_all("div", {"class": "_e4e14m"})
+  # for e in tmpDIVs:
+  #   tmpSPANs = e.find_all("span")
+  #   for e2 in tmpSPANs:
+  #     tmptrackList.append(e2.text)
+  # for i,e in enumerate(tmptrackList):
+  #   if i % 2 == 0:
+  #     if tmptrackList[i+1] in ["(GBR)","(IRL)","(JPN)","(CAN)","(FRA)","(SWE)","(BRA)"]:
+  #       break
+  #     else:
+  #       trackList.append(e)
+
+  # tmpDIVs = soup.find("div", {"class": "_1k65463"})
+  # tmpDIVs2 = tmpDIVs.find_all("div", {"class": "_1xxbwka"})
+  # # print(len(tmpDIVs2))
+
+  # countRaces = 0
+  # tmpList = []
+  # for i,e in enumerate(tmpDIVs2):
+  #   tmpSPANs = e.find_all("span")
+  #   for i2,e2 in enumerate(tmpSPANs):
+  #     e2 = e2.text
+  #     if ":" in e2:
+  #       continue    
+  #     if e2 == "R1":
+  #       countRaces +=1
+  #     if countRaces > len(trackList):
+  #       break         
+  #     if len(e2) == 2:
+  #       tmpList.append(trackList[countRaces - 1])        
+  #       tmpList.append(e2.replace("R",""))
+  #     else:
+  #       selection = e2.split(" ")
+  #       tmpList.append(selection)
+
+  # for i,e in enumerate(tmpList):
+  #   if i % 3 == 0:
+  #     print(f"Working on {tmpList[i]}, Race {tmpList[i + 1]}, Selection {tmpList[i + 2]}...")        
+      
+  #     ws["A" + str (nextRow)].value = "TAB"
+  #     ws["B" + str (nextRow)].value = datetime.today ()
+  #     ws["C" + str (nextRow)].value = tmpList[i]
+  #     ws["D" + str (nextRow)].value = tmpList[i + 1]
+  #     selection = tmpList[i + 2]
+  #     if len(selection) > 0:
+  #       ws["E" + str (nextRow)].value = selection[0]
+  #     if len(selection) > 1:
+  #       ws["F" + str (nextRow)].value = selection[1]
+  #     if len(selection) > 2:
+  #       ws["G" + str (nextRow)].value = selection[2]
+  #     if len(selection) > 3:
+  #       ws["H" + str (nextRow)].value = selection[3]
+  #     if len(selection) > 4:
+  #       ws["H" + str (nextRow)].value = selection[4]
+  #     if len(selection) > 5:
+  #       ws["H" + str (nextRow)].value = selection[5]
+
+  #     nextRow += 1
+  #     if nextRow % SAVE_INTERVAL == 0:
+  #         wb.save (fn)
+  #         # wb.close()
+  #         print ("Saved to disk...")
+
+
+  ### ladbrokes.com I ### 
   WAIT = 1
-  link = "https://www.tab.com.au/racing/meetings/today/R"  
+  link = "https://www.tab.com.au/racing/meetings/tomorrow"  
   print(f"Working for: {link}")
 
   options = Options()
@@ -258,7 +351,7 @@ if __name__ == '__main__':
   elif platform == "darwin": cd = '/chromedriver'
   driver = webdriver.Chrome (path + cd, options=options)
   driver.get (link)
-  time.sleep (WAIT)
+  time.sleep (WAIT)   
   driver.find_element(By.XPATH, '//button[text()="Select"]').click()
   driver.get ("https://www.tab.com.au/")
   time.sleep (WAIT)
@@ -266,68 +359,66 @@ if __name__ == '__main__':
   time.sleep (WAIT)    
   soup = BeautifulSoup (driver.page_source, 'html.parser')
   time.sleep (WAIT)
-  
-  tmptrackList = []
-  trackList = []
-  tmpDIVs = soup.find_all("div", {"class": "_e4e14m"})
-  for e in tmpDIVs:
-    tmpSPANs = e.find_all("span")
-    for e2 in tmpSPANs:
-      tmptrackList.append(e2.text)
-  for i,e in enumerate(tmptrackList):
-    if i % 2 == 0:
-      if tmptrackList[i+1] in ["(GBR)","(IRL)","(JPN)","(CAN)","(FRA)","(SWE)","(BRA)"]:
-        break
-      else:
-        trackList.append(e)
 
   tmpDIVs = soup.find("div", {"class": "_1k65463"})
   tmpDIVs2 = tmpDIVs.find_all("div", {"class": "_1xxbwka"})
   # print(len(tmpDIVs2))
-
   countRaces = 0
-  tmpList = []
+  tmpListRaces = []
   for i,e in enumerate(tmpDIVs2):
-    tmpSPANs = e.find_all("span")
-    for i2,e2 in enumerate(tmpSPANs):
-      e2 = e2.text
-      if ":" in e2:
-        continue    
-      if e2 == "R1":
-        countRaces +=1
-      if countRaces > len(trackList):
-        break         
-      if len(e2) == 2:
-        tmpList.append(trackList[countRaces - 1])        
-        tmpList.append(e2.replace("R",""))
-      else:
-        selection = e2.split(" ")
-        tmpList.append(selection)
+    tmpSPANs = e.find_all("a")
+    for e2 in tmpSPANs:
+      tmpListRaces.append(f"https://www.tab.com.au{e2.get('href')}")
 
-  for i,e in enumerate(tmpList):
-    if i % 3 == 0:
-      print(f"Working on {tmpList[i]}, Race {tmpList[i + 1]}, Selection {tmpList[i + 2]}...")        
+  for e in tmpListRaces:
+    track = e.split("/")[5]
+    race = e.split("/")[-1]
+    racesFinal = []
+    print(f"Working on {e}")
+    driver.get(e)
+    time.sleep (WAIT)  
+    try:
+      driver.find_element(By.XPATH, '//button[@class="_128kfdm "]').click()
+    except:
+      continue
+    soup = BeautifulSoup (driver.page_source, 'html.parser')
+    time.sleep (WAIT)    
+    tmpDIVs = soup.find_all("div", {"class": "_1qyvgcc"})
+    for elem in tmpDIVs:
+      # read header of tip
+      textTip = elem.find("span", {"class": "_81vpgn"}).text
+      # read tipps
+      tmpDIVs2 = elem.find_all("div", {"class": "_13ijbad"})
+      selection = []
+      for elem2 in tmpDIVs2:
+        tmpSPAN = elem2.find_all("span")
+        nrJokey = tmpSPAN[0].text.replace(".","").replace(" ","").strip()
+        selection.append(nrJokey)
+      if f"{track} {race} {textTip}" not in racesFinal:
+        racesFinal.extend([f"{track} {race} {textTip}",selection])  
+        print(f"Writing {track} {race} {textTip} {selection}...")
+        ws["A" + str (nextRow)].value = "TAB"
+        ws["B" + str (nextRow)].value = datetime.today ()
+        ws["C" + str (nextRow)].value = track
+        ws["D" + str (nextRow)].value = f"{race} {textTip}"
+        if len(selection) > 0:
+          ws["E" + str (nextRow)].value = selection[0]
+        if len(selection) > 1:
+          ws["F" + str (nextRow)].value = selection[1]
+        if len(selection) > 2:
+          ws["G" + str (nextRow)].value = selection[2]
+        if len(selection) > 3:
+          ws["H" + str (nextRow)].value = selection[3]
+        if len(selection) > 4:
+          ws["H" + str (nextRow)].value = selection[4]
+        if len(selection) > 5:
+          ws["H" + str (nextRow)].value = selection[5]
       
-      ws["A" + str (nextRow)].value = "TAB"
-      ws["B" + str (nextRow)].value = datetime.today ()
-      ws["C" + str (nextRow)].value = tmpList[i]
-      ws["D" + str (nextRow)].value = tmpList[i + 1]
-      selection = tmpList[i + 2]
-      if len(selection) > 0:
-        ws["E" + str (nextRow)].value = selection[0]
-      if len(selection) > 1:
-        ws["F" + str (nextRow)].value = selection[1]
-      if len(selection) > 2:
-        ws["G" + str (nextRow)].value = selection[2]
-      if len(selection) > 3:
-        ws["H" + str (nextRow)].value = selection[3]
-      if len(selection) > 4:
-        ws["H" + str (nextRow)].value = selection[4]
-      if len(selection) > 5:
-        ws["H" + str (nextRow)].value = selection[5]
+        nextRow += 1
+        if nextRow % SAVE_INTERVAL == 0:
+            wb.save (fn)
+            # wb.close()
+            print ("Saved to disk...")
 
-      nextRow += 1
-      if nextRow % SAVE_INTERVAL == 0:
-          wb.save (fn)
-          # wb.close()
-          print ("Saved to disk...")
+  for i in racesFinal:
+    print(i)
