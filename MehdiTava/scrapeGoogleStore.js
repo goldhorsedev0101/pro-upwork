@@ -216,7 +216,7 @@ async function main () {
           
           // console.log(`${item.appId} ${item.title} prepared for XLSX...`)
           arrWorkedOn.push(item.appId)
-        }
+        }cd 
 
       // process.exit(1)      
       })
