@@ -15,7 +15,7 @@ from selenium.webdriver.common.by import By
 
 if __name__ == '__main__':
   SAVE_INTERVAL = 5
-  WAIT = 3
+  WAIT = 0.5
   FN = "ScrapeBets.xlsx"
   path = os.path.abspath(os.path.dirname(sys.argv[0]))  
   HEADERS = {
@@ -59,7 +59,7 @@ if __name__ == '__main__':
     tmpHREFs = soup.find_all("a")
     for i,e in enumerate(tmpHREFs):
       e = e.get("href")
-      if "horse-racing" in e and "australia-nz" in e:
+      if "horse-racing" in e and "australia-nz" in e and len(e.split("/")) == 5:
         ergDetailLinks.append("https://www.sportsbet.com.au" + e)
     # break
 

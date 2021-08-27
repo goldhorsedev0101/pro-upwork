@@ -27,8 +27,8 @@ if __name__ == '__main__':
   ws = wb.sheets["Bets"]
 
   # check waiting time
-  if ws["B1"].value != None:
-    WAIT = ws["B1"].value
+  if ws["D1"].value != None:
+    WAIT = ws["D1"].value
 
   # check next free row
   rows = ws.range ("A3:A2000").value
