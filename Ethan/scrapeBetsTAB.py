@@ -102,10 +102,10 @@ if __name__ == '__main__':
       if f"{track} {race} {textTip}" not in racesFinal:
         racesFinal.extend([f"{track} {race} {textTip}",selection])  
         print(f"Writing {track} {race} {textTip} {selection}...")
-        ws["A" + str (nextRow)].value = "TAB"
-        ws["B" + str (nextRow)].value = datetime.today ()
-        ws["C" + str (nextRow)].value = track
-        ws["D" + str (nextRow)].value = f"{race} {textTip}"
+        ws["A" + str (nextRow)].value = f"TAB {textTip}"
+        ws["B" + str (nextRow)].value = datetime.today()
+        ws["C" + str (nextRow)].value = track.lower().capitalize()
+        ws["D" + str (nextRow)].value = race
         if len(selection) > 0:
           ws["E" + str (nextRow)].value = selection[0]
         if len(selection) > 1:
