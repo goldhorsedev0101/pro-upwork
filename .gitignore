@@ -1,4 +1,9 @@
-chromedriver.exe
+~*
+*/__pycache__/*
+*.env
+*.exe
+*.zip
+*.cachechromedriver.exe
 *.db
 *.csv
 *.exe

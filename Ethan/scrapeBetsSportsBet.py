@@ -1,3 +1,4 @@
+# pyinstaller --onefile --hidden-import pycountry --exclude-module matplotlib scrapeBetsSportsBet.py
 from bs4.element import TemplateString
 import requests
 import time
