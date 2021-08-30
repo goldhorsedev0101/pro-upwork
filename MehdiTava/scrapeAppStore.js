@@ -17,7 +17,12 @@ if (ws[`B1`] && ["YES","Y"].includes(ws[`B1`].v.toUpperCase())) {
   readAll = true
 }
 
-let maxRow = 10000
+let overwrite = false
+if (ws[`H1`] && ["YES","Y"].includes(ws[`H1`].v.toUpperCase())) {
+  overwrite = true
+}
+
+let maxRow = 100000
 let arrColl = []
 let arrCat = []
 if (readAll === true) {
@@ -67,6 +72,7 @@ for (i=2; i<=maxRow; i++) {
 }
 nextFreeRow = i
 // console.log(arrIDExis)
+// process.exit(1)
 
 async function getStoreCollection(coll,cat) {
   try {
@@ -94,9 +100,9 @@ async function main () {
       console.log(`Working with this pair not possible - skipped...`)
       continue
     } else {           
-      console.log(`Check Erg: ${erg.values()}`)
-      console.log(erg[0])
-      console.log(Object.keys(erg[0]))
+      // console.log(`Check Erg: ${erg.values()}`)
+      // console.log(erg[0])
+      // console.log(Object.keys(erg[0]))
 
       for (entry in erg) {}
       erg.forEach(function (item,index) {    
@@ -107,10 +113,12 @@ async function main () {
         } else {
           rowNumber = nextFreeRow
           nextFreeRow += 1
+          arrIDExis.push(item.id)          
         }
         // console.log(item.id)
         // console.log(rowNumber)
         // console.log(item)
+        // process.exit(1)
 
         // write data to xlsx
         XLSX.utils.sheet_add_aoa(ws2, [[arrColl[i]]], {origin: `A${rowNumber}`});
