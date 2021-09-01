@@ -16,7 +16,7 @@ from selenium.webdriver.common.by import By
 
 if __name__ == '__main__':
   SAVE_INTERVAL = 5
-  WAIT = 0.5
+  WAIT = 1
   FN = "ScrapeBets.xlsx"
   path = os.path.abspath(os.path.dirname(sys.argv[0]))  
   HEADERS = {
@@ -39,17 +39,21 @@ if __name__ == '__main__':
           break
   
   ### sportbet.com ###
-  link = "https://www.sportsbet.com.au/racing-schedule/horse-racing"
+  # link = "https://www.sportsbet.com.au/racing-schedule/horse-racing"
+  link = "https://www.sportsbet.com.au/racing-schedule/tomorrow"
+  print(f"Scrape data from: {link}")
   page = requests.get (link, headers=HEADERS)
   soup = BeautifulSoup (page.content, "html.parser")
   time.sleep(WAIT)
 
   ergLinks = []
   tmpHREFs = soup.find_all("a")
+
   for i,e in enumerate(tmpHREFs):
     e = e.get("href")
-    if "horse-racing" in e and "australia-nz" in e:
-      ergLinks.append("https://www.sportsbet.com.au" + e)
+    if e != None and "horse-racing" in e and "australia-nz" in e and \
+      f"https://www.sportsbet.com.au{e}" not in ergLinks:
+        ergLinks.append("https://www.sportsbet.com.au" + e)
 
   ergDetailLinks = []
   for eLinks in ergLinks:
@@ -60,8 +64,10 @@ if __name__ == '__main__':
     tmpHREFs = soup.find_all("a")
     for i,e in enumerate(tmpHREFs):
       e = e.get("href")
-      if "horse-racing" in e and "australia-nz" in e and len(e.split("/")) == 5:
-        ergDetailLinks.append("https://www.sportsbet.com.au" + e)
+      if e != None and"horse-racing" in e and "australia-nz" in e \
+        and len(e.split("/")) == 5 \
+        and f"https://www.sportsbet.com.au{e}" not in ergDetailLinks:
+          ergDetailLinks.append("https://www.sportsbet.com.au" + e)
     # break
 
   options = Options()

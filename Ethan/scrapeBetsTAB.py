@@ -36,13 +36,12 @@ if __name__ == '__main__':
   for idx,cont in enumerate(rows):
       if cont == None:
           nextRow = int(idx+3)
-          break
-  
+          break 
 
   ### tab.com I ### 
   WAIT = 1
   link = "https://www.tab.com.au/racing/meetings/tomorrow"  
-  print(f"Working for: {link}")
+  print(f"Scrape data from: {link}")
 
   options = Options()
   options.add_argument('--headless')
