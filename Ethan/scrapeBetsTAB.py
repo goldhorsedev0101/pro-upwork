@@ -56,12 +56,17 @@ if __name__ == '__main__':
   elif platform == "darwin": cd = '/chromedriver'
   driver = webdriver.Chrome (path + cd, options=options)
   driver.get (link)
-  time.sleep (WAIT)   
-  driver.find_element(By.XPATH, '//button[text()="Select"]').click()
-  driver.get ("https://www.tab.com.au/")
   time.sleep (WAIT)
-  driver.back()
-  time.sleep (WAIT)    
+
+  # have only to do this cause this popsup in the austrian version - not the australian it seems
+  try:    
+    driver.find_element(By.XPATH, '//button[text()="Select"]').click()
+    driver.get ("https://www.tab.com.au/")
+    time.sleep (WAIT)
+    driver.back()
+    time.sleep (WAIT)    
+  except:
+    pass    
   soup = BeautifulSoup (driver.page_source, 'html.parser')
   time.sleep (WAIT)
 
