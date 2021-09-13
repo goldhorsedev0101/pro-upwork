@@ -10,3 +10,11 @@
 node_modules
 *-macos
 *-linux
+*.toc
+*/__pycache__/*
+*.env
+*.exe
+*.zip
+*.cache
+/build/*
+/dist/*

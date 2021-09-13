@@ -59,14 +59,16 @@ if __name__ == '__main__':
   time.sleep (WAIT)
 
   # have only to do this cause this popsup in the austrian version - not the australian it seems
-  try:    
-    driver.find_element(By.XPATH, '//button[text()="Select"]').click()
-    driver.get ("https://www.tab.com.au/")
-    time.sleep (WAIT)
-    driver.back()
-    time.sleep (WAIT)    
+  try:
+    driver.find_element(By.XPATH, '//button[text()="Select"]').click()    
+    print(f"Skip welcome window...") 
   except:
-    pass    
+    print(f"Skipping welcome window not necessary / possible...")
+
+  driver.get ("https://www.tab.com.au/") 
+  time.sleep (WAIT)
+  driver.back()
+  time.sleep (WAIT)         
   soup = BeautifulSoup (driver.page_source, 'html.parser')
   time.sleep (WAIT)
 
@@ -88,17 +90,21 @@ if __name__ == '__main__':
     driver.get(e)
     time.sleep (WAIT)  
     try:
-      driver.find_element(By.XPATH, '//button[@class="_128kfdm "]').click()
+      # driver.find_element(By.XPATH, '//button[@class="_128kfdm "]').click()
+      driver.find_element(By.XPATH, '//button[@data-testid="tabx-tabs-tab"]').click()      
+      print(f"Tipps button pressed...")
     except:
+      print(f"No tipps button found - continuing...")
       continue
     soup = BeautifulSoup (driver.page_source, 'html.parser')
-    time.sleep (WAIT)    
-    tmpDIVs = soup.find_all("div", {"class": "_1qyvgcc"})
+    time.sleep (WAIT)  
+    # find divs with the 4 tipps / jockeys in it  
+    tmpDIVs = soup.find_all("div", {"class": "_1bl97dk"})
     for elem in tmpDIVs:
       # read header of tip
-      textTip = elem.find("span", {"class": "_81vpgn"}).text
-      # read tipps
-      tmpDIVs2 = elem.find_all("div", {"class": "_13ijbad"})
+      textTip = elem.find("h1", {"class": "_maswhi"}).text
+      # read single jokey / tipps
+      tmpDIVs2 = elem.find_all("div", {"class": "_bg6a1o"})
       selection = []
       for elem2 in tmpDIVs2:
         tmpSPAN = elem2.find_all("span")
