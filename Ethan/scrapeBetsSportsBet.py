@@ -5,6 +5,7 @@ import time
 from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.service import Service
 from sys import platform
 import os, sys
 import xlwings as xw
@@ -68,13 +69,12 @@ if __name__ == '__main__':
         and len(e.split("/")) == 5 \
         and f"https://www.sportsbet.com.au{e}" not in ergDetailLinks:
           ergDetailLinks.append("https://www.sportsbet.com.au" + e)
-    # break
 
   options = Options()
   options.add_argument('--headless')
   options.add_experimental_option ('excludeSwitches', ['enable-logging'])
   options.add_argument("start-maximized")
-  path = os.path.abspath (os.path.dirname (sys.argv[0]))
+  path = os.path.abspath (os.path.dirname (sys.argv[0])) 
 
   for eLink in ergDetailLinks:
     print(f"Working on race {eLink}...")
@@ -85,15 +85,25 @@ if __name__ == '__main__':
     if platform == "win32": cd = '/chromedriver.exe'
     elif platform == "linux": cd = '/chromedriver'
     elif platform == "darwin": cd = '/chromedriver'
-    driver = webdriver.Chrome (path + cd, options=options)
+    srv=Service(path + cd)
+    driver = webdriver.Chrome (service=srv, options=options)
     driver.get (eLink)  # Read link
     time.sleep (WAIT)  # Wait till the full site is loaded
     soup = BeautifulSoup (driver.page_source, 'html.parser')  # Read page with html.parser
     time.sleep (WAIT)  
-    selection = soup.find("span", {"data-automation-id": "expert-tips-list"})
-    selection = list(selection.text.split(" ")[1].split("-"))
-    selection = list(map(int,selection))
-    # print(f"DEBUG - {track, race, selection}")
+
+    # # old scraping - only the number from eg. 2-10-16-4 at the top of the div
+    # selection = soup.find("span", {"data-automation-id": "expert-tips-list"})
+    # selection = list(selection.text.split(" ")[1].split("-"))
+    # selection = list(map(int,selection))
+  	# new selection - take number and horse name from the right div element
+    selection = []
+    tmpDIV = soup.find_all("div", {"data-automation-id": "tipped-outcome-row"})
+    for elem in tmpDIV:
+      tmpSPAN = elem.find_all("span")
+      for i in tmpSPAN:
+        if ". " in i.text:
+          selection.append(i.text)
     print(f"Write to excel - {track, race, selection}...")
 
     ws["A" + str (nextRow)].value = "Sportsbet"
@@ -101,17 +111,17 @@ if __name__ == '__main__':
     ws["C" + str (nextRow)].value = track
     ws["D" + str (nextRow)].value = race
     if len(selection) > 0:
-      ws["E" + str (nextRow)].value = selection[0]
+      ws["E" + str (nextRow)].value = selection[0].split(". ")[0]
+      ws["I" + str (nextRow)].value = selection[0].split(". ")[1]
     if len(selection) > 1:
-      ws["F" + str (nextRow)].value = selection[1]
+      ws["F" + str (nextRow)].value = selection[1].split(". ")[0]
+      ws["J" + str (nextRow)].value = selection[1].split(". ")[1]
     if len(selection) > 2:
-      ws["G" + str (nextRow)].value = selection[2]
+      ws["G" + str (nextRow)].value = selection[2].split(". ")[0]
+      ws["K" + str (nextRow)].value = selection[2].split(". ")[1]
     if len(selection) > 3:
-      ws["H" + str (nextRow)].value = selection[3]
-    if len(selection) > 4:
-      ws["H" + str (nextRow)].value = selection[4]
-    if len(selection) > 5:
-      ws["H" + str (nextRow)].value = selection[5]
+      ws["H" + str (nextRow)].value = selection[3].split(". ")[0]
+      ws["L" + str (nextRow)].value = selection[3].split(". ")[1]
     
     driver.quit()
 

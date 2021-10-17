@@ -1,10 +1,11 @@
-# pyinstaller --onefile --hidden-import pycountry --exclude-module matplotlib scrapeBetsTAB.py
+# pyinstaller --onefile --hidden-import pycountry --exclude-module matplotlib scrapeBetsRAS.py
 from bs4.element import TemplateString
 import requests
 import time
 from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.service import Service
 from sys import platform
 import os, sys
 import xlwings as xw
@@ -13,9 +14,8 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 
-
 if __name__ == '__main__':
-  SAVE_INTERVAL = 5
+  SAVE_INTERVAL = 50
   WAIT = 3
   FN = "ScrapeBets.xlsx"
   path = os.path.abspath(os.path.dirname(sys.argv[0]))  
@@ -44,7 +44,7 @@ if __name__ == '__main__':
   print(f"Scrape data from: {link}")
 
   options = Options()
-  # options.add_argument('--headless')
+  options.add_argument('--headless')
   options.add_experimental_option ('excludeSwitches', ['enable-logging'])
   options.add_argument("start-maximized")
   options.add_argument('window-size=1920x1080')								  
@@ -54,7 +54,8 @@ if __name__ == '__main__':
   if platform == "win32": cd = '/chromedriver.exe'
   elif platform == "linux": cd = '/chromedriver'
   elif platform == "darwin": cd = '/chromedriver'
-  driver = webdriver.Chrome (path + cd, options=options)
+  srv=Service(path + cd)
+  driver = webdriver.Chrome (service=srv, options=options)
   driver.get (link)
   time.sleep (WAIT)
 
@@ -99,11 +100,14 @@ if __name__ == '__main__':
         ws["C" + str (nextRow)].value = tmpLocation
         ws["D" + str (nextRow)].value = idxRaceNum + 1
         if len(elem) > 1:
-          ws["E" + str (nextRow)].value = elem[1]
+          ws["E" + str (nextRow)].value = elem[1].split(".")[0]
+          ws["I" + str (nextRow)].value = elem[1].split(".")[1]
         if len(elem) > 2:
-          ws["F" + str (nextRow)].value = elem[2]
+          ws["F" + str (nextRow)].value = elem[2].split(".")[0]
+          ws["J" + str (nextRow)].value = elem[2].split(".")[1]
         if len(elem) > 3:
-          ws["G" + str (nextRow)].value = elem[3]
+          ws["G" + str (nextRow)].value = elem[3].split(".")[0]
+          ws["K" + str (nextRow)].value = elem[3].split(".")[1]
         nextRow += 1
         if nextRow % SAVE_INTERVAL == 0:
             wb.save (fn)
