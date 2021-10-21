@@ -5,6 +5,7 @@ import time
 from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.service import Service
 from sys import platform
 import os, sys
 import xlwings as xw
@@ -40,7 +41,9 @@ if __name__ == '__main__':
 
   ### tab.com I ### 
   WAIT = 1
+  # it seems that in austria its better using the second link (today/R) and in australia the first link (tomorrow)...
   link = "https://www.tab.com.au/racing/meetings/tomorrow"  
+  # link = "https://www.tab.com.au/racing/meetings/today/R"  
   print(f"Scrape data from: {link}")
 
   options = Options()
@@ -54,7 +57,8 @@ if __name__ == '__main__':
   if platform == "win32": cd = '/chromedriver.exe'
   elif platform == "linux": cd = '/chromedriver'
   elif platform == "darwin": cd = '/chromedriver'
-  driver = webdriver.Chrome (path + cd, options=options)
+  srv=Service(path + cd)
+  driver = webdriver.Chrome (service=srv, options=options)
   driver.get (link)
   time.sleep (WAIT)
 
@@ -109,27 +113,29 @@ if __name__ == '__main__':
       for elem2 in tmpDIVs2:
         tmpSPAN = elem2.find_all("span")
         nrJokey = tmpSPAN[0].text.replace(".","").replace(" ","").strip()
-        selection.append(nrJokey)
+        nameHorse = tmpSPAN[1].text.strip()
+        selection.append(f"{nrJokey}.{nameHorse}")
       if f"{track} {race} {textTip}" not in racesFinal:
         racesFinal.extend([f"{track} {race} {textTip}",selection])  
         print(f"Writing {track} {race} {textTip} {selection}...")
+
         ws["A" + str (nextRow)].value = f"TAB {textTip}"
         ws["B" + str (nextRow)].value = datetime.today()
         ws["C" + str (nextRow)].value = track.lower().capitalize()
         ws["D" + str (nextRow)].value = race
         if len(selection) > 0:
-          ws["E" + str (nextRow)].value = selection[0]
+          ws["E" + str (nextRow)].value = selection[0].split(".")[0]
+          ws["I" + str (nextRow)].value = selection[0].split(".")[1]
         if len(selection) > 1:
-          ws["F" + str (nextRow)].value = selection[1]
+          ws["F" + str (nextRow)].value = selection[1].split(".")[0]
+          ws["J" + str (nextRow)].value = selection[1].split(".")[1]
         if len(selection) > 2:
-          ws["G" + str (nextRow)].value = selection[2]
+          ws["G" + str (nextRow)].value = selection[2].split(".")[0]
+          ws["K" + str (nextRow)].value = selection[2].split(".")[1]
         if len(selection) > 3:
-          ws["H" + str (nextRow)].value = selection[3]
-        if len(selection) > 4:
-          ws["H" + str (nextRow)].value = selection[4]
-        if len(selection) > 5:
-          ws["H" + str (nextRow)].value = selection[5]
-      
+          ws["H" + str (nextRow)].value = selection[3].split(".")[0]
+          ws["L" + str (nextRow)].value = selection[3].split(".")[1]
+
         nextRow += 1
         if nextRow % SAVE_INTERVAL == 0:
             wb.save (fn)
