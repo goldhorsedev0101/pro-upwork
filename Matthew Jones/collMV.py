@@ -18,7 +18,7 @@ from fake_useragent import UserAgent
 
 if __name__ == '__main__':
   SAVE_INTERVAL = 5
-  WAIT = 2
+  WAIT = 3
   FN = "data.xlsx"
   path = os.path.abspath(os.path.dirname(sys.argv[0]))  
   rowNum = 2
@@ -27,8 +27,8 @@ if __name__ == '__main__':
   wb = xw.Book (fn)
   ws = wb.sheets[0]
   existData = ws.range ("A2:Z5000").value
-  existMatches = [x[:5] for x in existData if x[0] != None]
-  rowNum = len(existMatches) + 2   
+  existMatchLinks = [x[10] for x in existData if x[0] != None]
+  rowNum = len(existMatchLinks) + 2   
    
   print(f"Checking chromedriver...")
   os.environ['WDM_LOG_LEVEL'] = '0' 
@@ -57,90 +57,124 @@ if __name__ == '__main__':
     driver = webdriver.Chrome (service=srv, options=options)        
   waitWebDriver = WebDriverWait (driver, 10)         
   
-  lElems = []
-  link = f"https://www.transfermarkt.co.uk/premier-league/startseite/wettbewerb/GB1/plus/?saison_id=2021" 
-  tmpLeague = link.split("/")[3]
-  print(f"Working for {tmpLeague} with link {link}...")
-  # driver.minimize_window()        # optional
-  driver.get (link)       
-  time.sleep(WAIT) 
-  soup = BeautifulSoup (driver.page_source, 'html.parser')  
-  tmpID = soup.find("div", {"id": "yw1"}) 
-  tmpBODY = tmpID.find("tbody")
-  tmpTR = tmpBODY.find_all("tr")
-  for idx, elem in enumerate(tmpTR):
-    tmpLink = elem.find("a").get("href")
-    tmpLink = f"https://www.transfermarkt.co.uk{tmpLink}"
-    tmpLink = tmpLink.replace("startseite","spielplandatum")
-    print(f"Working for link {tmpLink}...")   
-    driver.get (tmpLink)  
-    time.sleep(WAIT) 
-    soup = BeautifulSoup (driver.page_source, 'html.parser') 
-    tmpName = soup.find("h1").text.strip()
-    tmpDIV = soup.find("div", {"class": "responsive-table"}) 
-    tmpTBODY = tmpDIV.find("tbody")
-    tmpTR = tmpTBODY.find_all("tr")
-    tmpComp = None
-    for elemTR in tmpTR:
-      classInfo = elemTR.get("style")
-      if classInfo == None:
-        tmpComp = elemTR.text.strip()
-      else:
-        tmpTD = elemTR.find_all("td")
-        tmpRound = tmpTD[0].text.strip()
-        tmpDate = tmpTD[1].text.strip()
-        tmpTime = tmpTD[2].text.strip()
-        tmpVenue = tmpTD[3].text.strip()
-        tmpOpponent = tmpTD[6].find("a").get("title")
-        tmpResult = tmpTD[9].text.strip()
-        tmpMatchLink = tmpTD[9].find("a").get("href")
-        tmpMatchLink = f"https://www.transfermarkt.co.uk{tmpMatchLink}"
+  listLeagues = ["https://www.transfermarkt.co.uk/premier-league/startseite/wettbewerb/GB1",
+                "https://www.transfermarkt.co.uk/a-league-men/startseite/wettbewerb/AUS1"
+                ]
+  listYears = ["2020","2021"]
 
-        driver.get (tmpMatchLink)  
+  for league in listLeagues:
+    for year in listYears:
+      link = f"{league}/plus/?saison_id={year}"
+      tmpLeague = link.split("/")[3]
+      tmpSeason = f"{year}/{str(int(year)+1)}"
+      print(f"Working for {tmpLeague} with link {link}...")
+
+      # driver.minimize_window()        # optional
+      driver.get (link)       
+      time.sleep(WAIT) 
+      soup = BeautifulSoup (driver.page_source, 'html.parser')  
+      tmpID = soup.find("div", {"id": "yw1"}) 
+      tmpBODY = tmpID.find("tbody")
+      tmpTR = tmpBODY.find_all("tr")
+      for idx, elem in enumerate(tmpTR):
+        tmpLink = elem.find("a").get("href")
+        tmpLink = f"https://www.transfermarkt.co.uk{tmpLink}"
+        tmpLink = tmpLink.replace("startseite","spielplandatum")
+        print(f"Working for link {tmpLink}...")   
+        driver.get (tmpLink)  
         time.sleep(WAIT) 
-        soup = BeautifulSoup (driver.page_source, 'html.parser') 
-        tmpLI = soup.find("li", {"id": "line-ups"})
-        linkLineUps = tmpLI.find("a").get("href")
-        linkLineUps = f"https://www.transfermarkt.co.uk{linkLineUps}"
-        driver.get (linkLineUps)  
-        time.sleep(WAIT) 
-        soup = BeautifulSoup (driver.page_source, 'html.parser')
-        tmpDIV = soup.find_all("div", {"class": "table-footer"}) 
-        tmpMV1 = tmpDIV[0].find_all("td")[3].text.strip().replace("Total MV:","").strip()
-        tmpMV2 = tmpDIV[1].find_all("td")[3].text.strip().replace("Total MV:","").strip()
+        soup = BeautifulSoup (driver.page_source, 'html.parser')     
+        tmpName = soup.find("h1").text.strip()
+        tmpDIV = soup.find("div", {"class": "responsive-table"}) 
+        tmpTBODY = tmpDIV.find("tbody")
+        tmpTR = tmpTBODY.find_all("tr")
+        tmpComp = None
+        for elemTR in tmpTR:
+          classInfo = elemTR.get("style")
+          if classInfo == None:
+            tmpComp = elemTR.text.strip()
+          else:
+            tmpTD = elemTR.find_all("td")
+            tmpRound = tmpTD[0].text.strip()
+            tmpDate = tmpTD[1].text.strip()
+            tmpTime = tmpTD[2].text.strip()
+            tmpVenue = tmpTD[3].text.strip()
+            tmpOpponent = tmpTD[6].find("a").get("title")
+            tmpResult = tmpTD[9].text.strip()
+            tmpMatchLink = tmpTD[9].find("a").get("href")
+            tmpMatchLink = f"https://www.transfermarkt.co.uk{tmpMatchLink}"
+            
+            if tmpMatchLink in existMatchLinks:
+              print(f"{tmpMatchLink} allready in excel - skipped...")
+              continue
+            existMatchLinks.append(tmpMatchLink)        
+            print(f"Working on MatchLink: {tmpMatchLink}")
+            
+            tmpMV1 = tmpMV2 = linkLineUps = None
+            TMPWAIT = WAIT          
+            while True and TMPWAIT < 5:          
+              driver.get (tmpMatchLink)  
+              time.sleep(TMPWAIT) 
+              soup = BeautifulSoup (driver.page_source, 'html.parser') 
+              tmpLI = soup.find("li", {"id": "line-ups"})
+              if tmpLI != None:
+                break
+              else:
+                TMPWAIT += 1
+                print(f"Reading again with increased waiting time {TMPWAIT}...")                                                       
+            if tmpLI != None:       
+              linkLineUps = tmpLI.find("a").get("href")
+              linkLineUps = f"https://www.transfermarkt.co.uk{linkLineUps}"
+              print(f"Working on LineUps: {linkLineUps}...")         
+              TMPWAIT = WAIT
+              while True:          
+                driver.get (linkLineUps)         
+                time.sleep(TMPWAIT) 
+                soup = BeautifulSoup (driver.page_source, 'html.parser')
+                tmpDIV = soup.find_all("div", {"class": "table-footer"}) 
+                if len(tmpDIV) > 0:
+                  break
+                else:
+                  TMPWAIT += 1
+                  print(f"Reading again with increased waiting time {TMPWAIT}...")                       
+              tmpMV1 = tmpDIV[0].find_all("td")[3].text.strip().replace("Total MV:","").strip()
+              tmpMV2 = tmpDIV[1].find_all("td")[3].text.strip().replace("Total MV:","").strip()
 
-        if tmpVenue == "A":
-          tmpHomeTeam = tmpOpponent
-          tmpAwayTeam = tmpName
-        elif tmpVenue == "H":
-          tmpHomeTeam = tmpName
-          tmpAwayTeam = tmpOpponent
-        else:
-          print(f"Stop Working - tmpVenue wrong with: {tmpVenue}")
-          exit()
+            if tmpVenue == "A":
+              tmpHomeTeam = tmpOpponent
+              tmpAwayTeam = tmpName
+            elif tmpVenue == "H":
+              tmpHomeTeam = tmpName
+              tmpAwayTeam = tmpOpponent
+            else:
+              print(f"Stop Working - tmpVenue wrong with: {tmpVenue}")
+              exit()
 
-        # print(tmpName)
-        # print(tmpRound)
-        # print(tmpDate)
-        # print(tmpTime)
-        # print(tmpVenue)
-        # print(tmpOpponent)
-        # print(tmpResult)
-        # print(tmpMV1)
-        # print(tmpMV2)   
-        # print(tmpLink)
-        # print(linkLineUps)
+            # print(tmpName)
+            # print(tmpRound)
+            # print(tmpDate)
+            # print(tmpTime)
+            # print(tmpVenue)
+            # print(tmpOpponent)
+            # print(tmpResult)
+            # print(tmpMV1)
+            # print(tmpMV2)   
+            # print(tmpLink)
+            # print(linkLineUps)
 
-        tmpRow = [tmpDate, tmpTime, tmpLeague, tmpComp, tmpHomeTeam, tmpAwayTeam, 
-                  tmpMV1, tmpMV2, tmpLink, linkLineUps]  
-        print(tmpRow)
-        if tmpRow[:5] in existMatches:
-          continue
-        else:
-          existMatches.append(tmpRow[:5])
-        ws.range(f"A{rowNum}:K{rowNum}").value = None
-        ws.range(f"A{rowNum}:K{rowNum}").value = tmpRow
-        print(f"{link} written to row {rowNum}...")
-        rowNum += 1
+            tmpRow = [tmpSeason, tmpDate, tmpTime, tmpLeague, tmpComp, tmpHomeTeam, 
+                      tmpAwayTeam, tmpMV1, tmpMV2, tmpLink, tmpMatchLink, linkLineUps]  
+            print(tmpRow)
+            # if tmpRow[:5] in existMatches:
+            #   print(f"{tmpRow[:5]} allready in existMatches - skipped...")
+            #   continue
+            # else:
+            #   existMatches.append(tmpRow[:5])
+            ws.range(f"A{rowNum}:L{rowNum}").value = None
+            ws.range(f"A{rowNum}:L{rowNum}").value = tmpRow
+            print(f"{link} written to row {rowNum}...")
+            rowNum += 1
 
-        # input("Press!")     
+            # input("Press!")     
+
+    wb.save()
