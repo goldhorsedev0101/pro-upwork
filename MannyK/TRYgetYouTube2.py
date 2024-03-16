@@ -85,24 +85,26 @@ if __name__ == '__main__':
   # driver.minimize_window()
   waitWD = WebDriverWait (driver, 10)         
 
-  firstRun = True
+  link = "https://www.youtube.com/"
+  driver.get (link)  
+  input(f"Pls signup to your google accoutn and press a key...")
   for rowNum, row in enumerate(inpData, start=2):
     if row[1] != None:
       continue
     link = row[0]
     # link = "https://www.youtube.com/user/BesY24"
     driver.get (link)  
-    if firstRun:
-      try:
-        driver.find_element(By.XPATH,'(//button[@aria-label="Accept all"])[1]').click()       
-      except:
-        pass
-      try:
-        driver.find_element(By.XPATH,'(//button[@aria-label="Alle akzeptieren"])[1]').click()       
-      except:
-        pass
+    # if firstRun:
+    #   try:
+    #     driver.find_element(By.XPATH,'(//button[@aria-label="Accept all"])[1]').click()       
+    #   except:
+    #     pass
+    #   try:
+    #     driver.find_element(By.XPATH,'(//button[@aria-label="Alle akzeptieren"])[1]').click()       
+    #   except:
+    #     pass
       
-      firstRun = False
+      # firstRun = False
     time.sleep(WAIT) 
 
     waitWD.until(EC.element_to_be_clickable((By.XPATH, '//yt-attributed-string[@id="more"]'))).click()     
@@ -118,6 +120,18 @@ if __name__ == '__main__':
       linkList.append(f"{wName}: {wLink}")
     wAboutLink = ", ".join(linkList)
 
+    waitWD.until(EC.element_to_be_clickable((By.XPATH, '//td[@id="view-email-button-container"]//button'))).click()  
+    waitWD.until(EC.frame_to_be_available_and_switch_to_it((By.XPATH,"//iframe[@title='reCAPTCHA']")))          
+    waitWD.until(EC.element_to_be_clickable((By.XPATH, '//span[@id="recaptcha-anchor"]'))).click()  
+    # driver.execute_script("arguments[0].click();", waitWD.until(EC.element_to_be_clickable((By.XPATH, '//span[@id="recaptcha-anchor"]'))))    
+    driver.switch_to.default_content()  
+    time.sleep(WAIT) 
+    waitWD.until(EC.element_to_be_clickable((By.XPATH, '//button[@id="submit-btn"]'))).click()  
+    time.sleep(WAIT)
+
+    input("Press!")
+
+
     worker = soup.find("div", {"id": "additional-info-container"})
     worker = worker.find_next("table")
     worker = worker.find_all("td")
@@ -126,9 +140,9 @@ if __name__ == '__main__':
     wChannelDetails = ", ".join(worker)
 
     tmpRow = [wAboutLink, wChannelDetails]   
-    # for e in tmpRow:
-    #   print(e)
-    # exit()
+    for e in tmpRow:
+      print(e)
+    exit()
 
     ws.range(f"B{rowNum}:C{rowNum}").value = tmpRow
     ws.range(f"A{rowNum}:Z{rowNum}").api.WrapText = False    
