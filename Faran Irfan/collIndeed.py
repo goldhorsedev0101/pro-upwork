@@ -218,9 +218,15 @@ if __name__ == '__main__':
             results = client.beta.threads.messages.list(
                 thread_id=thread.id
             )
-          answer = results.data[0].content[0].text.value
-          print(f"The resume is fitting to the job description {answer} out of 100")
-          tmpRow = [link, tmpTitle, tmpCompany, tmpLocation, tmpDate, tmpLink, tmpSnippet, answer]              
+
+          try:
+            answer = results.data[0].content[0].text.value
+            print(f"The resume is fitting to the job description {answer} out of 100")
+          except:
+            print(f"No answer found...")
+            print(results)
+            answer = "N/A"
+          tmpRow = [link, tmpTitle, tmpCompany, tmpLocation, tmpDate, tmpLink, tmpSnippet, answer] 
         else:
           tmpRow = [link, tmpTitle, tmpCompany, tmpLocation, tmpDate, tmpLink, tmpSnippet]    
         # for e in tmpRow:
