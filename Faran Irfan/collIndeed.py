@@ -117,9 +117,9 @@ if __name__ == '__main__':
   waitWD = WebDriverWait (driver, 10)         
   
   for idx, baseLink in enumerate(inpData):
-    if TRIAL and idx > 0:
-      print(f"In the trial-version only the first baselink will be worked on - program stopped...")
-      sys.exit()
+    # if TRIAL and idx > 0:
+    #   print(f"In the trial-version only the first baselink will be worked on - program stopped...")
+    #   sys.exit()
     countRows = 0
     breakOut = False
     for pageNr in range(0, 1000, 20):

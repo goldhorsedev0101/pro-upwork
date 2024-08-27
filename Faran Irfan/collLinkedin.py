@@ -117,9 +117,9 @@ if __name__ == '__main__':
   # driver.minimize_window()
   waitWD = WebDriverWait (driver, 10)         
   for idx, baseLink in enumerate(inpData):
-    if TRIAL and idx > 0:
-      print(f"In the trial-version only the first baselink will be worked on - program stopped...")
-      sys.exit()
+    # if TRIAL and idx > 0:
+    #   print(f"In the trial-version only the first baselink will be worked on - program stopped...")
+    #   sys.exit()
 
     while True:
       driver.get (baseLink)
@@ -176,7 +176,11 @@ if __name__ == '__main__':
         continue
       nothingFound = False
       existLinks.append(checkKey)
-      tmpDesc = soup.find("div", {"class": "description__text"}).text.strip()
+      tmpDesc = soup.find("div", {"class": "description__text"})
+      if not tmpDesc:
+        print(f"No description text found for this add - skipped...")
+        continue        
+      tmpDesc = tmpDesc.text.strip()
 
       tmpRow = [baseLink, tmpTitle, tmpCompany, tmpLocation, tmpDate, tmpLink, tmpDesc] 
       # for e in tmpRow:
