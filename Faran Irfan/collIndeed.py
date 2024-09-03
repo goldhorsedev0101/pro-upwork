@@ -58,6 +58,7 @@ if __name__ == '__main__':
   fn = os.path.join(path, ".env")
   load_dotenv(fn) 
   CHATGPT_API_KEY = os.environ.get("CHATGPT_API_KEY")
+  SCRAPEOPS_API = os.environ.get("SCRAPEOPS_API")
   client = OpenAI(api_key = CHATGPT_API_KEY)
   fn = os.path.join(path, "resume.docx")
   vector_store = client.beta.vector_stores.create(name="Resume")
@@ -101,20 +102,20 @@ if __name__ == '__main__':
   workNum = 0
   tmpOutput = []  
    
-  print(f"Checking Browser driver...")
-  options = Options()
-  # options.add_argument('--headless=new')  
-  options.add_argument("start-maximized")
-  options.add_argument('--log-level=3')  
-  options.add_experimental_option("prefs", {"profile.default_content_setting_values.notifications": 1})    
-  options.add_experimental_option("excludeSwitches", ["enable-automation"])
-  options.add_experimental_option('excludeSwitches', ['enable-logging'])
-  options.add_experimental_option('useAutomationExtension', False)
-  options.add_argument('--disable-blink-features=AutomationControlled') 
-  srv=Service()
-  driver = webdriver.Chrome (service=srv, options=options)    
+  # print(f"Checking Browser driver...")
+  # options = Options()
+  # # options.add_argument('--headless=new')  
+  # options.add_argument("start-maximized")
+  # options.add_argument('--log-level=3')  
+  # options.add_experimental_option("prefs", {"profile.default_content_setting_values.notifications": 1})    
+  # options.add_experimental_option("excludeSwitches", ["enable-automation"])
+  # options.add_experimental_option('excludeSwitches', ['enable-logging'])
+  # options.add_experimental_option('useAutomationExtension', False)
+  # options.add_argument('--disable-blink-features=AutomationControlled') 
+  # srv=Service()
+  # driver = webdriver.Chrome (service=srv, options=options)    
   # driver.minimize_window()
-  waitWD = WebDriverWait (driver, 10)         
+  # waitWD = WebDriverWait (driver, 10)         
   
   for idx, baseLink in enumerate(inpData):
     # if TRIAL and idx > 0:
@@ -133,12 +134,43 @@ if __name__ == '__main__':
       # existKeys.append(link)
 
       print(f"Working for {link}")  
-      driver.get (link)    
-      driver.execute_script("window.scrollTo(0, 10000)") 
-      # input("Press!")
 
-      time.sleep(WAIT) 
-      soup = BeautifulSoup (driver.page_source, 'html.parser')       
+      nothingFound = True
+      for _ in range(5):
+        while True:
+          try:
+            page = requests.get(
+              url='https://proxy.scrapeops.io/v1/',
+              params={
+                  'api_key': SCRAPEOPS_API,
+                  'url': link,
+                  # 'bypass': 'cloudflare',
+                  # 'wait': 3000
+                  'scroll': 10000,
+                  'bypass': 'generic_level_2'    
+              },
+              ) 
+            break
+          except:
+            print(f"Scrapeops request crashed - try again...")
+            time.sleep(3)                                     
+        print(f"Status: {page.status_code}")
+        if page.status_code == 200:
+          nothingFound = False
+          break
+        print(f"Wrong statuscode {page.status_code} from scrapeops - try again...")
+        time.sleep(3)
+      if nothingFound:
+        print(f"Problems reading this link - skipped...")
+        continue
+      soup = BeautifulSoup (page.content, "html.parser")           
+
+      # driver.get (link)    
+      # driver.execute_script("window.scrollTo(0, 10000)") 
+      # # input("Press!")
+      # time.sleep(WAIT) 
+      # soup = BeautifulSoup (driver.page_source, 'html.parser')       
+
       tmpDIV = soup.find_all("div", {"class": "slider_item"}) 
       print(f"{len(tmpDIV)} elements found")
       nothingFound = True
@@ -190,12 +222,55 @@ if __name__ == '__main__':
         # tmpRow = [workLink, tmpTitle, tmpCompany, tmpLocation, tmpSalary, tmpJobType, 
         #           tmpShift, tmpDate, tmpLink, tmpSnippet]    
         if DETAIL_DESC:        
-          driver.get (tmpLink)
           print(f"Working on detaillink {tmpLink}")
-          time.sleep(WAIT) 
-          soup = BeautifulSoup (driver.page_source, 'html.parser')               
-          tmpDesc = soup.find("div", {"id": "jobDescriptionText"}).text.strip()
-                    
+          while True:
+            nothingFound = True
+            for _ in range(5):
+              while True:
+                try:
+                  page = requests.get(
+                    url='https://proxy.scrapeops.io/v1/',
+                    params={
+                        'api_key': SCRAPEOPS_API,
+                        'url': tmpLink,
+                        # 'bypass': 'cloudflare',
+                        # 'wait': 3000
+                        'scroll': 10000,
+                        'bypass': 'generic_level_2'    
+                    },
+                    ) 
+                  break
+                except:
+                  print(f"Scrapeops request crashed - try again...")
+                  time.sleep(3)                                     
+              print(f"Status: {page.status_code}")
+              if page.status_code == 200:
+                nothingFound = False
+                break
+              print(f"Wrong statuscode {page.status_code} from scrapeops - try again...")
+              time.sleep(3)
+            if nothingFound:
+              print(f"Problems reading this link - skipped...")
+              continue
+            soup = BeautifulSoup (page.content, "html.parser")   
+
+            # driver.get (tmpLink)
+            # driver.execute_script("window.scrollTo(0, 10000)") 
+            # # input("Press!")          
+            # time.sleep(WAIT) 
+            # soup = BeautifulSoup (driver.page_source, 'html.parser')               
+
+            tmpDesc = "N/A"
+            worker = soup.find("div", {"id": "jobDescriptionText"})
+            if worker:
+              tmpDesc = worker.text.strip()
+              break
+            else:
+              print(f"Description not found - try again...")
+              time.sleep(3)
+            # print(tmpDesc)
+            # input("Press1")
+
           print(f"Preparing thread")
           thread = client.beta.threads.create()
           print(f"Preparing question")
@@ -218,14 +293,18 @@ if __name__ == '__main__':
             results = client.beta.threads.messages.list(
                 thread_id=thread.id
             )
+          # print(results)
+          # input("Press!")
 
           try:
             answer = results.data[0].content[0].text.value
             print(f"The resume is fitting to the job description {answer} out of 100")
           except:
-            print(f"No answer found...")
-            print(results)
+            input(f"No answer found - pls check your API-key...")
+            # print(results)
             answer = "N/A"
+          # input("Press!")
+
           tmpRow = [link, tmpTitle, tmpCompany, tmpLocation, tmpDate, tmpLink, tmpSnippet, answer] 
         else:
           tmpRow = [link, tmpTitle, tmpCompany, tmpLocation, tmpDate, tmpLink, tmpSnippet]    

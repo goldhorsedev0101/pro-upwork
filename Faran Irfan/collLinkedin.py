@@ -59,6 +59,7 @@ if __name__ == '__main__':
   fn = os.path.join(path, ".env")
   load_dotenv(fn) 
   CHATGPT_API_KEY = os.environ.get("CHATGPT_API_KEY")
+  SCRAPEOPS_API = os.environ.get("SCRAPEOPS_API")  
   client = OpenAI(api_key = CHATGPT_API_KEY)
   fn = os.path.join(path, "resume.docx")
   vector_store = client.beta.vector_stores.create(name="Resume")
@@ -122,15 +123,46 @@ if __name__ == '__main__':
     #   sys.exit()
 
     while True:
-      driver.get (baseLink)
-      print(f"Working for Baselink {baseLink}")
-      for i in range(1):
-        print(f"ScrollDown for more data {i + 1}")
+      nothingFound = True
+      for _ in range(5):
+        while True:
+          try:
+            page = requests.get(
+              url='https://proxy.scrapeops.io/v1/',
+              params={
+                'api_key': SCRAPEOPS_API,
+                'url': baseLink,
+                # 'bypass': 'cloudflare',
+                # 'wait': 3000
+                'scroll': 100000,
+                'bypass': 'generic_level_2'    
+              },
+              ) 
+            break
+          except:
+            print(f"Scrapeops request crashed - try again...")
+            time.sleep(3)                                     
+        print(f"Status: {page.status_code}")
+        if page.status_code == 200:
+          nothingFound = False
+          break
+        print(f"Wrong statuscode {page.status_code} from scrapeops - try again...")
         time.sleep(3)
-        driver.execute_script("window.scrollTo(0, 100000)") 
-        time.sleep(WAIT)
-      time.sleep(WAIT) 
-      soup = BeautifulSoup (driver.page_source, 'html.parser')       
+      if nothingFound:
+        print(f"Problems reading this link - skipped...")
+        continue
+      soup = BeautifulSoup (page.content, "html.parser")   
+
+      # driver.get (baseLink)
+      # print(f"Working for Baselink {baseLink}")
+      # for i in range(1):
+      #   print(f"ScrollDown for more data {i + 1}")
+      #   time.sleep(3)
+      #   driver.execute_script("window.scrollTo(0, 100000)") 
+      #   time.sleep(WAIT)
+      # time.sleep(WAIT) 
+      # soup = BeautifulSoup (driver.page_source, 'html.parser')       
+        
       worker = soup.find("ul", {"class": "jobs-search__results-list"}) 
       if worker:
         tmpDIV = worker.find_all("li") 
@@ -140,15 +172,46 @@ if __name__ == '__main__':
       time.sleep(WAIT)
 
     print(f"{len(tmpDIV)} elements found")
-    nothingFound = True
+
+    nothingFoundCheck = True
     for elem in tmpDIV:
       tmpLink = elem.find("a").get("href")
       print(f"Working on detaillink {tmpLink}")
-
       while True:
-        driver.get (tmpLink)
-        soup = BeautifulSoup (driver.page_source, 'html.parser') 
-        time.sleep(WAIT) 
+        nothingFound = True
+        for _ in range(5):
+          while True:
+            try:
+              page = requests.get(
+                url='https://proxy.scrapeops.io/v1/',
+                params={
+                  'api_key': SCRAPEOPS_API,
+                  'url': tmpLink,
+                  # 'bypass': 'cloudflare',
+                  # 'wait': 3000
+                  # 'scroll': 100000,
+                  'bypass': 'generic_level_2'    
+                },
+                ) 
+              break
+            except:
+              print(f"Scrapeops request crashed - try again...")
+              time.sleep(3)                                     
+          print(f"Status: {page.status_code}")
+          if page.status_code == 200:
+            nothingFound = False
+            break
+          print(f"Wrong statuscode {page.status_code} from scrapeops - try again...")
+          time.sleep(3)
+        if nothingFound:
+          print(f"Problems reading this link - skipped...")
+          continue
+        soup = BeautifulSoup (page.content, "html.parser")   
+
+        # driver.get (tmpLink)
+        # soup = BeautifulSoup (driver.page_source, 'html.parser') 
+        # time.sleep(WAIT) 
+
         # print(elem.prettify())
         # input("Press!")
         worker = soup.find("h1", {"class": "top-card-layout__title"})
@@ -158,8 +221,15 @@ if __name__ == '__main__':
         print(f"Problems reading linkedin - detail - retry...")
         time.sleep(WAIT)
 
-      tmpCompany = soup.find("a", {"class": "topcard__org-name-link"}).text.strip()
-      tmpLocation = soup.find("span", {"class": "topcard__flavor topcard__flavor--bullet"}).text.strip()
+      tmpCompany = "N/A"
+      worker = soup.find("a", {"class": "topcard__org-name-link"})
+      if worker:
+        tmpCompany = worker.text.strip()
+      
+      tmpLocation = "N/A"
+      worker = soup.find("span", {"class": "topcard__flavor topcard__flavor--bullet"})
+      if worker:
+        tmpLocation = worker.text.strip()
 
       # tmpJobType = elem.find("svg", {"aria-label": "Job type"})
       # if tmpJobType != None:
@@ -174,7 +244,7 @@ if __name__ == '__main__':
       if checkKey in existLinks:
         print(f"{tmpTitle} / {tmpCompany} is allready in excel - skipped...")
         continue
-      nothingFound = False
+      nothingFoundCheck = False
       existLinks.append(checkKey)
       tmpDesc = soup.find("div", {"class": "description__text"})
       if not tmpDesc:

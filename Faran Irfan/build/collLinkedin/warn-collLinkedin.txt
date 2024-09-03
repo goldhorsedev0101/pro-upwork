@@ -22,7 +22,7 @@ missing module named fcntl - imported by subprocess (optional), paramiko.agent (
 missing module named urllib.urlopen - imported by urllib (delayed, optional), lxml.html (delayed, optional)
 missing module named urllib.urlencode - imported by urllib (delayed, optional), lxml.html (delayed, optional)
 missing module named urllib.quote - imported by urllib (optional), xlwings.mistune.util (optional), py._path.svnwc (delayed)
-missing module named posix - imported by os (conditional, optional), posixpath (optional), shutil (conditional), importlib._bootstrap_external (conditional)
+missing module named posix - imported by os (conditional, optional), shutil (conditional), importlib._bootstrap_external (conditional), posixpath (optional)
 missing module named resource - imported by posix (top-level), test.support (delayed, conditional, optional)
 missing module named _manylinux - imported by packaging._manylinux (delayed, optional), setuptools._vendor.packaging._manylinux (delayed, optional), wheel.vendored.packaging._manylinux (delayed, optional), setuptools._vendor.wheel.vendored.packaging._manylinux (delayed, optional), setuptools._distutils._vendor.packaging._manylinux (delayed, optional)
 missing module named _typeshed - imported by pkg_resources (conditional), trio._file_io (conditional), trio._path (conditional), anyio._core._fileio (conditional), httpx._transports.wsgi (conditional)
