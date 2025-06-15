@@ -55,6 +55,8 @@ fn = os.path.join(path, os.path.basename(__file__).replace(".py", ".xlsx"))
 print(f"Try to open excel in {fn}")
 wb = xw.Book (fn)
 ws = wb.sheets[0]
+inpData = ws.range ("A1:B5000").value
+inpData = [x for x in inpData if x[0] != None]
 
 print(f"Checking Browser driver...")
 HEADLESS = True
@@ -84,22 +86,24 @@ driver = webdriver.Chrome (service=srv, options=options)
 waitWD = WebDriverWait (driver, 10)         
 
 outData = []
-for pageNr in range(1,100):
-  link = f"https://velvet22.com/escorts?page={pageNr}"
+for rowNum, row in enumerate(inpData, start=1):
+  link = row[0]
+  if row[1] != None:
+    continue
+
   print(f"Working for detail-link: {link}")  
   driver.get (link)     
-  # waitWD.until(EC.presence_of_element_located((By.XPATH, '//button[@class="rpl-pagination__nav"]')))    
+  waitWD.until(EC.presence_of_element_located((By.XPATH, '//span[text()="Website"]')))    
   time.sleep(WAIT) 
   soup = BeautifulSoup (driver.page_source, 'lxml')  
-  worker = soup.find("div", {"id": "profile-card"})   
-  findElems = worker.find_all("figure", {"class": "image-container"})  
-  findElems = [[x.find("a").get("href")] for x in findElems]
-  if len(findElems) == 0:
-    break
-  outData.extend(findElems)
+  worker = soup.find("span", string="Website")    
+  worker = worker.find_next("a").get("href")
+
+  ws[f"B{rowNum}"].value = worker
+  rowNum += 1
 
 driver.quit()
-ws.range(f"A1:A1000").value = outData
+ws.range(f"B1:B1000").value = outData
 ws.autofit()     
 wb.save()
 print(f"Program {os.path.basename(__file__)} finished - will close soon...") 

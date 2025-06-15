@@ -4,7 +4,7 @@ import time
 import xlwings as xw
 
 path = os.path.abspath(os.path.dirname(sys.argv[0])) 
-fn = os.path.join(path, "sample_json.json")
+fn = os.path.join(path, "sample_json.txt")
 with open(fn, encoding="UTF-8", errors="ignore") as f:
   inpJSON = f.read()
 
@@ -49,9 +49,9 @@ for r in worker:
       # last attribute "value" has a dict with 3 entires ("all", "home", "away") with 3 attriubtes in it
       value = d["value"]
 
-      if D_type_id == 27254:
-        print(value)
-        exit()
+      # if D_type_id == 27258:
+      #   print(value)
+      #   exit()
 
       V_all_count = V_all_average = V_all_first = V_home_count = V_home_percentage = V_home_average = V_home_first = \
       V_away_count = V_away_percentage = V_away_average = V_away_first = V_0_15_count = V_0_15_percentage = V_15_30_count = \
@@ -63,10 +63,12 @@ for r in worker:
       V_Over35_TeamPerc = V_Over45_MatchCount = V_Over45_MatchPerc = V_Over45_TeamCount = V_Over45_TeamPerc = V_Over55_MatchCount = \
       V_Over55_MatchPerc = V_Over55_TeamCount = V_Over55_TeamPerc = V_avg_defender_height = V_avg_midfielder_height = V_avg_goalkeeper_height = \
       V_avg_attacker_height = V_avg_total_height = V_left = V_right = V_unknown = V_most_appearing_players = V_most_substituted_players = \
-      most_injured_players = V_fouls_per_card = V_cards_per_foul = scoring_frequency = V_total_minutes_played = V_most_scored_half = \
+      V_most_injured_players = V_fouls_per_card = V_cards_per_foul = V_scoring_frequency = V_total_minutes_played = V_most_scored_half = \
       V_most_scored_half_goals = V_details_1stHalf_Period = V_details_1stHalf_Total = V_details_2ndHalf_Period = V_details_2ndHalf_Total = \
       V_most_frequent_scoring_minute = V_amount_of_goals = V_total_interceptions = V_interceptions_per_game = V_passes_per_game = V_passes_per_goal = \
-      V_passes_per_shot = V_total_passes = "N/A"
+      V_passes_per_shot = V_total_passes = V_minutes_per_assist = V_assists_per_game = V_won_both_halves = V_scored_both_halves = V_comebacks = \
+      V_won_both_halves = V_scored_both_halves = V_comebacks = V_gf_over_0_5 = V_gf_over_1_5 = V_gf_over_2_5 = V_gf_over_3_5 = V_gf_over_4_5 = \
+      V_ga_over_0_5 = V_ga_over_1_5 = V_ga_over_2_5 = V_ga_over_3_5 = V_ga_over_4_5 = V_national_team_players = V_longest_appearing_players = "N/A"
       
       if "count" in value:
         V_all_count = value["count"]
@@ -110,10 +112,21 @@ for r in worker:
         V_right = value["right"]
       if "unknown" in value:
         V_unknown = value["unknown"]
+
       if "most_appearing_players" in value:
         worker = value["most_appearing_players"]
+        finalworker = []
+        for x in worker:
+          if "matches" in x:
+            finalworker.append(f"{x["player_id"]}: {x["matches"]}")
+          if "minutes" in x:
+            finalworker.append(f"{x["player_id"]}: {x["minutes"]}")
+        V_most_appearing_players = ", ".join(finalworker)
+        
+      if "longest_appearing_players" in value:
+        worker = value["longest_appearing_players"]
         worker = [f"{x["player_id"]}: {x["minutes"]}" for x in worker]
-        V_most_appearing_players = ", ".join(worker)
+        V_longest_appearing_players = ", ".join(worker)
       if "most_substituted_players" in value:
         worker = value["most_substituted_players"]
         worker = [f"{x["player_id"]}: {x["in"]}/{x["out"]}/{x["total"]}" for x in worker]
@@ -134,11 +147,14 @@ for r in worker:
         V_most_scored_half = value["most_scored_half"]
       if "most_scored_half_goals" in value:
         V_most_scored_half_goals = value["most_scored_half_goals"]
+      
       if "details" in value:
-        V_details_1stHalf_Period = value["details"]["1st-half"]["period"]
-        V_details_1stHalf_Total = value["details"]["1st-half"]["total"]
-        V_details_2ndHalf_Period = value["details"]["2nd-half"]["period"]
-        V_details_2ndHalf_Total = value["details"]["2nd-half"]["total"]
+        if "1st-half" in value["details"]:
+          V_details_1stHalf_Period = value["details"]["1st-half"]["period"]
+          V_details_1stHalf_Total = value["details"]["1st-half"]["total"]
+        if "2nd-half" in value["details"]:
+          V_details_2ndHalf_Period = value["details"]["2nd-half"]["period"]
+          V_details_2ndHalf_Total = value["details"]["2nd-half"]["total"]
       if "most_frequent_scoring_minute" in value:
         V_most_frequent_scoring_minute = value["most_frequent_scoring_minute"]
       if "amount_of_goals" in value:
@@ -155,10 +171,37 @@ for r in worker:
         V_passes_per_shot= value["passes_per_shot"]
       if "total_passes" in value:
         V_total_passes = value["total_passes"]
-
-      
-
-
+      if "minutes_per_assist" in value:
+        V_minutes_per_assist = value["minutes_per_assist"]
+      if "assists_per_game" in value:
+        V_assists_per_game = value["assists_per_game"]
+      if "won_both_halves" in value:
+        V_won_both_halves = value["won_both_halves"]
+      if "scored_both_halves" in value:
+        V_scored_both_halves = value["scored_both_halves"]
+      if "comebacks" in value:
+        V_comebacks = value["comebacks"]
+      if "gf_over_0_5" in value:
+        V_gf_over_0_5= value["gf_over_0_5"]
+      if "gf_over_1_5" in value:
+        V_gf_over_1_5= value["gf_over_1_5"]
+      if "gf_over_2_5" in value:
+        V_gf_over_2_5= value["gf_over_2_5"]
+      if "gf_over_3_5" in value:
+        V_gf_over_3_5= value["gf_over_3_5"]
+      if "gf_over_4_5" in value:
+        V_gf_over_4_5= value["gf_over_4_5"]
+      if "ga_over_0_5" in value:
+        V_ga_over_0_5= value["ga_over_0_5"]
+      if "ga_over_1_5" in value:
+        V_ga_over_1_5= value["ga_over_1_5"]
+      if "ga_over_2_5" in value:
+        V_ga_over_2_5= value["ga_over_2_5"]
+      if "ga_over_3_5" in value:
+        V_ga_over_3_5= value["ga_over_3_5"]
+      if "ga_over_4_5" in value:
+        V_ga_over_4_5= value["ga_over_4_5"]
+       
       if "over_0_5" in value:
         if "matches" in value["over_0_5"]:
           if "count" in value["over_0_5"]["matches"]:
@@ -291,11 +334,27 @@ for r in worker:
           if "first" in value["away"]:
             V_away_first = value["away"]["first"]
 
+      if "national_team_players" in value:
+        worker = value["national_team_players"]
+        worker = [f"{x["team"]}: {x["player"]}" for x in worker]
+        V_national_team_players = ", ".join(worker)
+
       worker = [R_id, R_sport_id, R_country_id, R_venue_id, R_gender, R_name, R_short_code, R_image_path, R_founded, R_type, R_placeholder, 
                 R_last_played_at, S_id, S_team_id, S_season_id, S_has_values, D_id, D_team_statistic_id, D_type_id, V_all_count, V_all_average,
                 V_all_first, V_home_count, V_home_percentage, V_home_average, V_home_first, V_away_count, V_away_percentage, V_away_average, V_away_first,
                 V_Total, V_0_15_count, V_0_15_percentage, V_15_30_count, V_15_30_percentage, V_30_45_count, V_30_45_percentage, V_45_60_count, V_45_60_percentage,
-                V_60_75_count, V_60_75_percentage, V_75_90_count, V_75_90_percentage]
+                V_60_75_count, V_60_75_percentage, V_75_90_count, V_75_90_percentage, V_Total, V_Scored, V_Missed, V_ConversionRate, V_PlayerID, V_PlayerName, 
+                V_Coach, V_CoachAverage, V_Value, V_Rating, V_Over05_MatchCount, V_Over05_MatchPerc, V_Over05_TeamCount, V_Over05_TeamPerc, V_Over15_MatchCount, 
+                V_Over15_MatchPerc, V_Over15_TeamCount, V_Over15_TeamPerc, V_Over25_MatchCount, V_Over25_MatchPerc, V_Over25_TeamCount, V_Over25_TeamPerc, 
+                V_Over35_MatchCount, V_Over35_MatchPerc, V_Over35_TeamCount, V_Over35_TeamPerc, V_Over45_MatchCount, V_Over45_MatchPerc, V_Over45_TeamCount, 
+                V_Over45_TeamPerc, V_Over55_MatchCount, V_Over55_MatchPerc, V_Over55_TeamCount, V_Over55_TeamPerc, V_avg_defender_height, V_avg_midfielder_height, 
+                V_avg_goalkeeper_height, V_avg_attacker_height, V_avg_total_height, V_left, V_right, V_unknown, V_most_appearing_players, V_most_substituted_players,
+                V_most_injured_players, V_fouls_per_card, V_cards_per_foul, V_scoring_frequency  , V_total_minutes_played, V_most_scored_half, V_most_scored_half_goals, 
+                V_details_1stHalf_Period, V_details_1stHalf_Total, V_details_2ndHalf_Period, V_details_2ndHalf_Total, V_most_frequent_scoring_minute, 
+                V_amount_of_goals, V_total_interceptions, V_interceptions_per_game, V_passes_per_game, V_passes_per_goal, V_passes_per_shot, V_total_passes, 
+                V_minutes_per_assist, V_assists_per_game, V_won_both_halves, V_scored_both_halves, V_comebacks, V_won_both_halves, V_scored_both_halves, 
+                V_comebacks, V_gf_over_0_5, V_gf_over_1_5, V_gf_over_2_5, V_gf_over_3_5, V_gf_over_4_5, V_ga_over_0_5, V_ga_over_1_5, V_ga_over_2_5, 
+                V_ga_over_3_5, V_ga_over_4_5, V_national_team_players, V_longest_appearing_players]
       # if len(outData) % 10 == 0:
       print(f"Working for entry {len(outData)}")
       outData.append(worker)
@@ -306,7 +365,7 @@ wb = xw.Book (fn)
 ws = wb.sheets[0]
 ws.range(f"A2:Z50000").value = None
 ws.range(f"A2:Z50000").value = outData
-ws.autofit()   
+# ws.autofit()   
 
 wb.save()
 print(f"Program {os.path.basename(__file__)} finished - will close soon...") 
